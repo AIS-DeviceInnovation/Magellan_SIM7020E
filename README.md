@@ -47,7 +47,7 @@ payload={"Lamp":1}
 ```
 **Note** please see more in the example code 
 # Quick Started
-  1. Connect `DEVIO NB-SHIELD I` to your computer.
+  1. Connect `DEVIO NB-DEVKIT I` to your computer.
   2. Open the Magellan IoT platform and see the data on your account.
 
 **Note** In this case, the device has already preload code then you just plug and play the development kit. You don't need to upload the example code to the device.
