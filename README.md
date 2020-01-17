@@ -13,34 +13,34 @@ Magellan_SIM7020E magel;
 magel.begin();           //init Magellan LIB
 ```
 ### Payload Data: 
-Please use payload in JSON format 
+Please use the payload in JSON format 
 
-**Example**
+**Example**\
 {"Temperature":25,"Humidity":90}
 
 ```cpp
 payload="{\"Temperature\":"+Temperature+",\"Humidity\":"+Humidity+"}";
 ```
-### Post Data:
-For post payload to Magellan
+### Report Data:
+The example code report payload data to Magellan IoT Platform.
 ```cpp
 magel.report(payload);
 ```
 ### Example Magellan payload format
-Mark location on MAP
-Example
+Please the location payload data as below format.\
+**Example**
 ```cpp
 payload={"Location":"Latitude,Longitude"}
 ```
-Show battery on dashboard
-Battery is range in 0-100 %.
-Example
+Show battery on dashboard\
+Battery is range in 0-100 %.\
+**Example**
 ```cpp
 payload={"Battery":100}   
 ```
-Show Lamp status on dashbord
-please use 0 or 1 to send status
-Example
+Show Lamp status on dashbord\
+please use 0 or 1 to send status\
+**Example**
 ```cpp
 payload={"Lamp":0} 
 payload={"Lamp":1}
