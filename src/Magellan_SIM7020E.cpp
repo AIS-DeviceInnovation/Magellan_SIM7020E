@@ -14,7 +14,7 @@ and supported only Magellan IoT Platform
  
 Author: Device Innovation team     
 Create Date: 2 January 2020. 
-Modified: 14 January 2020.
+Modified: 6 February 2020.
 
 Released for private usage.
 */
