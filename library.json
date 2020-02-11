@@ -1,0 +1,19 @@
+{
+  "name": "Magellan_SIM7020E",
+  "frameworks": "Arduino",
+  "keywords": "AIS, NB-IoT, SIM7020E, Magellan, SIMCOM",
+  "description": "Arduino Library for AIS Magellan",
+  "url": "https://github.com/AIS-DeviceInnovation/Magellan_SIM7020E",
+  "authors":
+  {
+    "name": "AIS IoT Alliance Program",
+    "maintainer": true
+  },
+  "repository":
+  {
+      "type": "git",
+      "url": "https://github.com/AIS-DeviceInnovation/Magellan_SIM7020E.git"
+  }, 
+  "version": "1.3.0",
+  "platforms": "*"
+}
