@@ -1,4 +1,41 @@
-//AT Command Dictionary for SIMCOM SIM7020E version 1.1.1
+/*
+Copyright (c) 2020, Advanced Wireless Network
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+AT Command Dictionary for SIMCOM SIM7020E version 1.3.1
+support SIMCOM SIM7020E
+NB-IoT with AT command
+
+Author: Device Innovation team  
+Create Date: 2 January 2020. 
+Modified: 30 April 2020.
+*/
+
 #include "AT_SIM7020E.h"  
 #include "board.h"
 
@@ -8,9 +45,10 @@
 AT_SIM7020E::AT_SIM7020E(){}
 
 void AT_SIM7020E::setupModule(String address,String port){
+
   previous_check=millis();
 
-	pinMode(hwResetPin, OUTPUT);   // set reset pin for hardware reboot
+  pinMode(hwResetPin, OUTPUT);                       // set reset pin for hardware reboot
   
   Serial.print(F(">>Rebooting ."));                               
   reboot_module();
@@ -52,25 +90,28 @@ void AT_SIM7020E::setupModule(String address,String port){
   if(debug)Serial.print(F(">>PSM mode : "));
   if(debug)Serial.println(checkPSMmode());
 
-  delay(1000);
+  delay(500);
   Serial.print(F(">>Signal : "));
-  Serial.print(getSignal());
-  Serial.println(F(" dBm"));
+  Serial.print(getSignal()); 
+  Serial.println(F(" dBm")); 
 
-  delay(800);
+  //delay(800);
   _serial_flush();
   Serial.print(F(">>Connecting "));
 
-  if(attachNetwork(address, port)){  
-    if(!createUDPSocket(address,port)){
-      Serial.println(">> Cannot create socket");
-    }
+  if(attachNetwork()){  
+    if(address!="" && port!=""){
+      if(!createUDPSocket(address,port)){
+        Serial.println(F(">> Cannot create socket"));
+      }
+    }    
     Serial.println(F("OK"));
     Serial.println(F("---------- Connected ----------"));
   }
   else {
     Serial.println(F("FAILED"));
     Serial.println(F("-------- Disconnected ---------"));
+    ESP.restart();
   }
   
 }
@@ -117,8 +158,6 @@ void AT_SIM7020E::check_module_ready(){
 }
 
 //  Reboot module with hardware pin.
-//    - blink first time  : start reboot 
-//    - blink second time : finish reboot
 void AT_SIM7020E::reboot_module(){
     digitalWrite(hwResetPin, LOW);
     delay(1000);
@@ -126,14 +165,14 @@ void AT_SIM7020E::reboot_module(){
     delay(2000);  
 }
 
-bool AT_SIM7020E::attachNetwork(String address,String port){
+bool AT_SIM7020E::attachNetwork(){
   bool status=false;
-  if(!checkNetworkConnection()){
-    for(int i=0;i<60;i++){
+  if(!NBstatus()){
+    for(byte i=0;i<60;i++){
       setPhoneFunction();
       connectNetwork();
-      delay(2000);
-      if(checkNetworkConnection()){ 
+      delay(1000);
+      if(NBstatus()){ 
         status=true;
         break;
       }
@@ -148,12 +187,12 @@ bool AT_SIM7020E::attachNetwork(String address,String port){
 }
 
 // Check network connecting status : 1 connected, 0 not connected
-bool AT_SIM7020E::checkNetworkConnection(){
+bool AT_SIM7020E::NBstatus(){
   bool status=false;
   _serial_flush();
   _Serial->println(F("AT+CGATT?"));
   delay(800);
-  for(int i=0;i<60;i++){
+  for(byte i=0;i<60;i++){
     if(_Serial->available()){
       data_input=_Serial->readStringUntil('\n');
       if(data_input.indexOf(F("+CGATT: 1"))!=-1){
@@ -190,14 +229,13 @@ bool AT_SIM7020E::setPhoneFunction(){
       }
     }
   }
-  Serial.print(".");
+  Serial.print(F("."));
   return status;
 }
 
 // Attach network : 1 connected, 0 disconnected
 void AT_SIM7020E::connectNetwork(){  
   _Serial->println(F("AT+CGATT=1"));
-  delay(1000);
   for(int i=0;i<30;i++){
     if(_Serial->available()){
       data_input =  _Serial->readStringUntil('\n');
@@ -205,19 +243,18 @@ void AT_SIM7020E::connectNetwork(){
       else if(data_input.indexOf(F("ERROR"))!=-1) break;
     }
   }
-  Serial.print(".");
+  Serial.print(F("."));
 }
 
 // Create a UDP socket and connect socket to remote address and port
 bool AT_SIM7020E::createUDPSocket(String address,String port){
   bool status=false;
   _Serial->println(F("AT+CSOC=1,2,1"));
-  delay(500);
+  delay(200);
   while(1){
     if(_Serial->available()){
       data_input=_Serial->readStringUntil('\n');
       if(data_input.indexOf(F("OK"))!=-1){
-        //break;
       }
       else if(data_input.indexOf(F("+CSOC: 0"))!=-1){
         status=true;
@@ -248,9 +285,7 @@ bool AT_SIM7020E::createUDPSocket(String address,String port){
         }
       }
     }
-    //if(debug) Serial.println("Create socket success");
   }
-  delay(1000);
   return status;
 }
 
@@ -279,39 +314,45 @@ void AT_SIM7020E::echoOff(){
 }
 
 // Ping IP
-void AT_SIM7020E::pingIP(String IP){
+pingRESP AT_SIM7020E::pingIP(String IP){
   pingRESP pingr;
-  String data = "";
+  String data="";
+  int replytime=0;
+  int ttl=0;
   _Serial->println("AT+CIPPING="+IP);
-
   while(1){
     if(_Serial->available()){
       data_input=_Serial->readStringUntil('\n');
       if(data_input.indexOf(F("ERROR"))!=-1){
         break;
       }
-      else if(data_input.indexOf(F("+CIPPING: 4"))!=-1){
+      else if(data_input.indexOf(F("+CIPPING: "))!=-1){
         data=data_input;
-        break;
+
+        byte index = data.indexOf(F(","));
+        byte index2 = data.indexOf(F(","),index+1);
+        byte index3 = data.indexOf(F(","),index2+1);
+        
+        pingr.addr = data.substring(index+1,index2);
+        replytime += data.substring(index2+1,index3).toInt();
+
+        ttl += data.substring(index3+1,data.length()).toInt();
+
       }
+      if(data_input.indexOf(F("+CIPPING: 4"))!=-1) break;
     }
   }
 
   if(data!=""){
-    int index = data.indexOf(F(","));
-    int index2 = data.indexOf(F(","),index+1);
-    int index3 = data.indexOf(F(","),index2+1);
+    pingr.ttl = String(ttl/4);
+    pingr.rtt = String((replytime/4.0)*100);
+    if(debug) Serial.println(">>Ping IP : "+pingr.addr + ", ttl= " + pingr.ttl + ", replyTime= " + pingr.rtt + "ms");
     pingr.status = true;
-    pingr.addr = data.substring(index+1,index2);
-    pingr.rtt = data.substring(index2+1,index3);
-    pingr.ttl = data.substring(index3+1,data.length());
-    //Serial.println("# Ping Success");
-    Serial.println(">>Ping IP : "+pingr.addr + ", ttl= " + pingr.ttl + ", replyTime= " + pingr.rtt);
-
-  }else { Serial.println(">>Ping Failed");}
+  }else { Serial.println(F(">>Ping Failed"));}
   _serial_flush();
   data_input="";
 
+  return pingr;
 }
 
 // Set powerSavingMode : 0 turn off, 1 turn on
@@ -406,8 +447,8 @@ String AT_SIM7020E::getDeviceIP(){
     if(_Serial->available()){
       data_input=_Serial->readStringUntil('\n');
       if(data_input.indexOf(F("+CGPADDR"))!=-1){
-        int index = data_input.indexOf(F(":"));
-        int index2 = data_input.indexOf(F(","));
+        byte index = data_input.indexOf(F(":"));
+        byte index2 = data_input.indexOf(F(","));
         deviceIP = data_input.substring(index2+1,data_input.length());
       }
       else if(data_input.indexOf(F("OK"))!=-1) break;
@@ -428,9 +469,8 @@ String AT_SIM7020E::getSignal(){
   data_input = "";
   do
   {
-    delay(200);
     _Serial->println(F("AT+CSQ"));
-    delay(500);
+    delay(200);
     while(1)  {    
       if(_Serial->available()){
         data_input = _Serial->readStringUntil('\n');
@@ -439,8 +479,8 @@ String AT_SIM7020E::getSignal(){
         }
         else{
           if(data_input.indexOf(F("+CSQ"))!=-1){
-            int start_index = data_input.indexOf(F(":"));
-            int stop_index  = data_input.indexOf(F(","));
+            byte start_index = data_input.indexOf(F(":"));
+            byte stop_index  = data_input.indexOf(F(","));
             data_csq = data_input.substring(start_index+1,stop_index);
             if (data_csq == "99"){
               data_csq = "N/A";
@@ -473,10 +513,8 @@ String AT_SIM7020E:: getAPN(){
     if(_Serial->available()){
       data_input = _Serial->readStringUntil('\n');
       if(data_input.indexOf(F("+CGDCONT: 1"))!=-1){
-        int index=0;
-        int index2=0;
-        index = data_input.indexOf(F(":"));
-        index2 = data_input.indexOf(F(","));
+        byte index = data_input.indexOf(F(":"));
+        byte index2 = data_input.indexOf(F(","));
 
         index = data_input.indexOf(F(","),index2+1);
         index2 = data_input.indexOf(F(","),index+1);
@@ -512,12 +550,12 @@ String AT_SIM7020E::getFirmwareVersion(){
 String AT_SIM7020E::getNetworkStatus(){
   String out = "";
   String data = "";
-  int count=0;
+  byte count=0;
 
   _Serial->println(F("AT+CEREG=2"));
-  delay(500);
+  delay(200);
   _serial_flush();
-  delay(1000);
+  delay(500);
   _Serial->println(F("AT+CEREG?"));
   while(1){
     if(_Serial->available()){
@@ -530,9 +568,9 @@ String AT_SIM7020E::getNetworkStatus(){
         }
         else {
           data=data_input;
-          int index = data.indexOf(F(": "));
-          int index2 = data.indexOf(F(","));
-          int index3 = data.indexOf(F(","),index2+1);
+          byte index = data.indexOf(F(": "));
+          byte index2 = data.indexOf(F(","));
+          byte index3 = data.indexOf(F(","),index2+1);
           out = data.substring(index2+1,index2+2);
           if (out == F("1")) out = F("Registered");
           else if (out == "0") out = F("Not Registered");
@@ -544,6 +582,39 @@ String AT_SIM7020E::getNetworkStatus(){
     }
   }
   return(out);
+}
+
+// Get radio stat.
+radio AT_SIM7020E::getRadioStat(){
+  radio value;
+  String out = "";
+  _Serial->println(F("AT+CENG?"));
+  while(1){
+    if(_Serial->available()){
+      data_input = _Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("+CENG:"))!=-1){
+        byte index = data_input.indexOf(F(","));
+        byte index2 = data_input.indexOf(F(","),index+1);
+        byte index3 = data_input.indexOf(F(","),index2+1);
+        value.pci = data_input.substring(index2+1,index3);
+
+        index = data_input.indexOf(F(","),index3+1);
+        index2 = data_input.indexOf(F(","),index+1);
+        value.rsrp = data_input.substring(index+1,index2);
+
+        index3 = data_input.indexOf(F(","),index2+1);
+        value.rsrq = data_input.substring(index2+1,index3);
+
+        index = data_input.indexOf(F(","),index3+1);
+        index2 = data_input.indexOf(F(","),index+1);
+        value.snr = data_input.substring(index+1,index2);
+      }
+      else if(data_input.indexOf(F("OK"))!=-1){
+        break;
+      }
+    }
+  }
+  return value;
 }
 
 bool AT_SIM7020E::checkPSMmode(){
@@ -583,19 +654,16 @@ void AT_SIM7020E::_Serial_print(String msg){
 // Send message type unsigned int
 void AT_SIM7020E::_Serial_print(unsigned int msg){
   _Serial->print(msg);
-  //if(debug)Serial.print(msg);
 }
 
 // Send message type char *
 void AT_SIM7020E::_Serial_print(char *msg){
   _Serial->print(msg);
-  //if(debug)Serial.print(msg);
 }
 
 // Send '\r\n'
 void AT_SIM7020E::_Serial_println(){
   _Serial->println();
-  //if(debug)Serial.println();
 }
 
 /****************************************/
@@ -615,7 +683,6 @@ void AT_SIM7020E:: waitResponse(String &retdata,String server){
     }
     else{
       data_input+=data;
-      //Serial.println(data_input);
     }
   }
   if (end){
@@ -639,8 +706,8 @@ void AT_SIM7020E:: manageResponse(String &retdata,String server){
 
       char *p = buf;
       char *str;
-      int i=0;
-      int j=0;
+      byte i=0;
+      byte j=0;
       while ((str = strtok_r(p, ",", &p)) != NULL){   // delimiter is the comma
         j=2;  // number of comma
 
@@ -653,10 +720,8 @@ void AT_SIM7020E:: manageResponse(String &retdata,String server){
         i++;
       }              
         data_input=F("");
-      }       
-    
+    }          
   }
-
 }
 
 /****************************************/
@@ -668,17 +733,12 @@ void AT_SIM7020E::printHEX(char *str){
   hstr=str;
   char out[3];
   memset(out,'\0',2);
-  int i=0;
   bool flag=false;
   while(*hstr){
     flag=itoa((int)*hstr,out,16);
     
     if(flag){
-      _Serial_print(out);
-
-      if(debug){
-        Serial.print(out);
-      }      
+      _Serial_print(out); 
     }
     hstr++;
   }
@@ -698,5 +758,262 @@ void AT_SIM7020E::_serial_flush(){
   _Serial->flush();
 }
 
+/****************************************/
+/**                MQTT                **/
+/****************************************/
 
+bool AT_SIM7020E::newMQTT(String server, String port){
+  _Serial->print(F("AT+CMQNEW="));
+  _Serial->print(F("\""));
+  _Serial->print(server);
+  _Serial->print(F("\""));
+  _Serial->print(F(","));
+  _Serial->print(F("\""));
+  _Serial->print(port);
+  _Serial->print(F("\""));
+  _Serial->print(F(","));
+  _Serial->print(mqttCmdTimeout);           //command_timeout_ms
+  _Serial->print(F(","));
+  _Serial->print(mqttBuffSize);             //buff size
+  _Serial->println();
+
+  while(1){
+    if(_Serial->available()){
+      data_input += _Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("+CMQNEW:"))!=-1 && data_input.indexOf(F("OK"))!=-1){
+        return true;
+      }
+      else if(data_input.indexOf(F("ERROR"))!=-1){
+        return false;
+      }
+    }
+  }
+}
+
+bool AT_SIM7020E::sendMQTTconnectionPacket(String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption){
+  //AT+CMQCON=<mqtt_id>,<version>,<client_id>,<keepalive_interval>,<cleansession>,<will_flag>[,<will_options>][,<username>,<password>]
+  _Serial->print(F("AT+CMQCON=0,"));
+  _Serial->print(version);                    //<version> : 3 > 3.1, 4 > 3.1.1
+  _Serial->print(F(","));
+  _Serial->print(F("\""));
+  _Serial->print(clientID);                   //<client_id> : should be unique.Max length is 120
+  _Serial->print(F("\""));
+  _Serial->print(F(","));
+  _Serial->print(keepalive);                  //<keepalive_interval> : 0 - 64800 
+  _Serial->print(F(","));
+  _Serial->print(cleansession);               //<cleansession>
+  _Serial->print(F(","));
+  _Serial->print(willflag);                   //<will_flag>  >> if 1 must include will_option
+
+  if(willflag==1){
+    _Serial->print(F(","));
+    _Serial->print(willOption);               //"topic=xxx,QoS=xxx,retained=xxx,message_len=xxx,message=xxx"
+  }
+
+  if (username.length()>0){
+    _Serial->print(F(","));
+    _Serial->print(F("\""));
+    _Serial->print(username);                 //<username> String, user name (option). Max length is 100
+    _Serial->print(F("\""));
+    _Serial->print(F(","));
+    _Serial->print(F("\""));
+    _Serial->print(password);                 //<password> String, password (option). Max length is 100
+    _Serial->print(F("\""));
+  }
+  _Serial->println();
+
+  while(1){
+    data_input = _Serial->readStringUntil('\n');
+    if(data_input.indexOf(F("OK"))!=-1){
+      return true;
+    }
+    else if(data_input.indexOf(F("ERROR"))!=-1 || data_input.indexOf(F("+CMQDISCON"))!=-1){
+      return false;
+    }
+  }
+}
+
+void AT_SIM7020E::disconnectMQTT(){
+  _Serial->println(F("AT+CMQDISCON=0"));
+  while(1){
+    if(_Serial->available()){
+      data_input = _Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("OK"))!=-1){
+        break;
+      }
+      if(data_input.indexOf(F("ERROR"))!=-1){
+        break;
+      }
+    }
+  }
+  data_input=F("");
+}
+
+bool AT_SIM7020E::MQTTstatus(){ 
+  _Serial->println(F("AT+CMQCON?"));
+  String inp="";
+  while(1){
+    if(_Serial->available()){
+      data_input = _Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("+CMQCON:"))!=-1){
+        inp=data_input;
+      }
+      else if(data_input.indexOf(F("OK"))!=-1){
+        break;
+      }
+      else if(data_input.indexOf(F("ERROR"))!=-1){
+        return false;
+      }
+    }
+  }
+  data_input=F("");
+  if(inp!=""){
+    //+CMQCON: <mqtt_id>,<connected_state>,<server>
+    byte index = inp.indexOf(F(","));
+    byte index2 = inp.indexOf(F(","),index+1);
+    if(inp.substring(index+1,index2).indexOf(F("1"))!=-1){
+      return true;
+    }
+    else if(inp.substring(index+1,index2).indexOf(F("0"))!=-1){
+      return false;
+    }
+  }
+}
+
+void AT_SIM7020E::publish(String topic, String payload, unsigned int qos, unsigned int retained, unsigned int dup){
+  //AT+CMQPUB=<mqtt_id>,<topic>,<QoS>,<retained>,<dup>,<message_len>,<message>
+  data_input=F("");
+  char data[payload.length()+1];
+  memset(data,'\0',payload.length());
+  payload.toCharArray(data,payload.length()+1);
+
+  _Serial->print(F("AT+CMQPUB=0,\""));
+  _Serial->print(topic);                        //<topic> String, topic of publish message. Max length is 128
+  _Serial->print(F("\""));            
+  _Serial->print(F(","));
+  _Serial->print(qos);                          //<Qos> Integer, message QoS, can be 0, 1 or 2.
+  _Serial->print(F(","));
+  _Serial->print(retained);                     //<retained> Integer, retained flag, can be 0 or 1.
+  _Serial->print(F(","));
+  _Serial->print(dup);                          //<dup> Integer, duplicate flag, can be 0 or 1.  
+  _Serial->print(F(","));
+  _Serial->print(payload.length()*msgLenMul);   //<message_len> Integer, length of publish message,can be from 2 to 1000.
+                                                //If message is HEX data streaming,then <message_len> should be even.
+  _Serial->print(F(",\""));
+  printHEX(data);
+  _Serial->print(F("\""));
+  _Serial->println();  
+}
+
+bool AT_SIM7020E::subscribe(String topic, unsigned int qos){  
+  //AT+CMQSUB=<mqtt_id>,<topic>,<QoS>
+  _Serial->print(F("AT+CMQSUB=0,\""));
+  _Serial->print(topic);                         //<topic> String, topic of subscribe message. Max length is 128.
+  _Serial->print(F("\","));
+  _Serial->println(qos);                         //<Qos> Integer, message QoS, can be 0, 1 or 2.
+
+}
+
+void AT_SIM7020E::unsubscribe(String topic){
+  _Serial->print(F("AT+CMQUNSUB=0,\""));
+  _Serial->print(topic);
+  _Serial->println(F("\""));
+ // delay(600);
+  while(1){
+    if(_Serial->available()){
+      data_input = _Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("OK"))!=-1){
+        if(debug) Serial.print(F("Unsubscribe topic :"));
+        if(debug) Serial.println(topic);
+        break;
+      }
+      else if(data_input.indexOf(F("ERROR"))!=-1){
+        break;
+      }
+    }
+  }
+  data_input=F("");
+}
+
+unsigned int AT_SIM7020E::MQTTresponse(){   //clear buffer before this
+  unsigned int ret=0;
+  if (_Serial->available()){
+      char data=(char)_Serial->read();
+      if(data=='\n' || data=='\r'){
+          end=true;
+      }
+      else{
+        data_input+=data;        
+      }
+  }
+  if (end){
+        //Serial.println(data_input);
+        if (data_input.indexOf(F("+CMQPUB"))!=-1 || data_input.indexOf(F("+CMQPUBEXT"))!=-1){
+        //+CMQPUB: <mqtt_id>,<topic>,<QoS>,<retained>,<dup>,<message_len>,<message>
+        byte index = data_input.indexOf(F(","));
+        byte index2 = data_input.indexOf(F(","),index+1);
+        index = data_input.indexOf(F(","),index2+1);
+        index2 = data_input.indexOf(F(","),index+1);
+        index = data_input.indexOf(F(","),index2+1);
+        index2 = data_input.indexOf(F(","),index+1);
+        int msgLen = data_input.substring(index+1,index2).toInt();
+
+        char buf[data_input.length()+1];
+        memset(buf,'\0',data_input.length());  //reset data
+        data_input.toCharArray(buf, sizeof(buf));
+
+        char *p = buf;
+        char *str;
+        byte i=0;
+        byte j=0;
+        while ((str = strtok_r(p, ",", &p)) != NULL){
+          // delimiter is the comma
+          if(i==1){
+            retTopic=str;
+            int topiclen=retTopic.length();
+            retTopic.replace(F("\""),"");
+          }
+          if(i==2){
+            retQoS=str;
+          }
+          if(i==3){
+            retRetained=str;
+          }
+          if(i==6 && data_input.indexOf(F("+CMQPUB:"))!=-1 || i==8 && data_input.indexOf(F("+CMQPUBEXT:"))!=-1){
+            retPayload=str;
+            if(msgLen>500){
+              Serial.println(F("Data incoming overload. [Max 250 characters]."));
+            }
+            else if(msgLen<500 && data_input.indexOf(F("+CMQPUBEXT:"))!=-1){
+              //Do nothing
+            }
+            else{
+              retPayload.replace(F("\""),"");
+              if (MQcallback_p != NULL){
+                MQcallback_p(retTopic,retPayload,retQoS,retRetained);
+              }
+            }
+          }
+          i++;
+        }
+        ret=1;
+      }
+      else if(data_input.indexOf(F("OK"))!=-1) ret=2;
+      else if(data_input.indexOf(F("ERROR"))!=-1) ret=3;
+      data_input=F("");
+      end=false;
+    }
+    retPayload="";
+  return ret;
+}
+
+int AT_SIM7020E::setCallback(MQTTClientCallback callbackFunc){
+     int r = -1;
+
+     if (MQcallback_p == NULL){
+          MQcallback_p = callbackFunc;
+          r = 0;
+     }
+     return r;
+}
 

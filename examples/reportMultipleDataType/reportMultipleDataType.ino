@@ -15,6 +15,8 @@
   and {"Lamp":0} or {"Lamp":1"} for show the Lamp status on dashboard
   
   Please login and enjoy with https://magellan.ais.co.th
+  
+  If you have any questions, please see more details at https://magellan.ais.co.th
 */
 #include "Magellan_SIM7020E.h"
 Magellan_SIM7020E magel;          
@@ -23,7 +25,7 @@ String payload;
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   magel.begin();           //Init Magellan LIB
 }
 
