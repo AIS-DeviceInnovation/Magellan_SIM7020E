@@ -1,18 +1,55 @@
-# AIS Magellan Library
+![Library Version](https://img.shields.io/badge/Version-1.4.0-green)
+
+# AIS Library
+
+## AIS SIM7020E API
+AIS SIM7020E API Library, used on arduino, have been developed for 
+any platform. This library include API such as UDP, MQTT.
+### Example for use the AIS SIM7020E API
+#### Call the AIS SIM7020E API library:
+```cpp
+#include "AIS_SIM7020E_API.h"
+AIS_SIM7020E_API nb;
+```
+#### Initial AIS SIM7020E API Library:
+**for UDP**
+```cpp
+nb.begin(serverIP,serverPort);    
+```
+**for MQTT**
+```cpp
+nb.begin();    
+nb.connectMQTT(serverIP,serverPort,clientID)
+nb.RegisMQCallback(callback);     
+```
+#### Send Data:
+**for UDP**
+```cpp
+nb.sendMsgSTR(serverIP,serverPort,payload);  // Send data in String 
+// or
+nb.sendMsgHEX(serverIP,serverPort,payload);  // Send data in HexString   
+```
+**for MQTT**
+```cpp
+nb.publish(topic,payload)  
+``` 
+ **Note** please see more in the example code  
+ 
+## AIS Magellan Library
 AIS Magellan Library, a software development kit used on arduino platform, have been developed for 
 Magellan IoT Platform.  
 
-# Example for use the Magellan SDK
-### Call the Magellan library:
+### Example for use the Magellan SDK
+#### Call the Magellan library:
 ```cpp
 #include "Magellan_SIM7020E.h"
 Magellan_SIM7020E magel;
 ```
-### Initial Magellan Library:
+#### Initial Magellan Library:
 ```cpp
 magel.begin();           //init Magellan LIB
 ```
-### Payload Data: 
+#### Payload Data: 
 Please use the payload in JSON format 
 
 **Example**\
@@ -21,12 +58,12 @@ Please use the payload in JSON format
 ```cpp
 payload="{\"Temperature\":"+Temperature+",\"Humidity\":"+Humidity+"}";
 ```
-### Report Data:
+#### Report Data:
 The example code report payload data to Magellan IoT Platform.
 ```cpp
 magel.report(payload);
 ```
-### Example Magellan payload format
+#### Example Magellan payload format
 Please the location payload data as below format.\
 **Example**
 ```cpp
@@ -46,7 +83,7 @@ payload={"Lamp":0}
 payload={"Lamp":1}
 ```
 **Note** please see more in the example code 
-# Quick Started
+## Quick Started
   1. Connect `DEVIO NB-DEVKIT I` to your computer.
   2. Open the Magellan IoT platform and see the data on your account.
 
