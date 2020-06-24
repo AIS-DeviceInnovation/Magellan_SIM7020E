@@ -9,6 +9,8 @@
   This is an example for digital dimmer. That has control the LED on board from Magellan IoT Platform.
   
   Please login and enjoy with https://magellan.ais.co.th
+  
+  If you have any questions, please see more details at https://magellan.ais.co.th
 */
 #include "Magellan_SIM7020E.h"
 Magellan_SIM7020E magel;          
@@ -25,7 +27,7 @@ const int resolution = 8;
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
     
   magel.begin();            //Init Magellan LIB
 
