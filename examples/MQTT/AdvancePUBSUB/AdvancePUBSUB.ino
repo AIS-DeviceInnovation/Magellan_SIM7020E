@@ -18,7 +18,7 @@ String password   = "";               //password for mqtt server, password <= 10
 int keepalive     = 60;               //keepalive time (second)
 int version       = 3;                //MQTT veresion 3(3.1), 4(3.1.1)
 int cleansession  = 1;                //cleanssion : 0, 1
-int willflag      = 1;
+int willflag      = 1;                //willflag : 0, 1
 unsigned int subQoS       = 0;
 unsigned int pubQoS       = 0;
 unsigned int will_qos     = 0;

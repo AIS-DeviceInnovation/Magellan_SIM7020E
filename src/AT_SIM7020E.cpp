@@ -586,6 +586,7 @@ String AT_SIM7020E::getNetworkStatus(){
 
 // Get radio stat.
 radio AT_SIM7020E::getRadioStat(){
+  _serial_flush();
   radio value;
   String out = "";
   _Serial->println(F("AT+CENG?"));
