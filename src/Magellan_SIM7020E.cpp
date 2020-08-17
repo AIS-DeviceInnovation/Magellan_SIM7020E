@@ -1,5 +1,33 @@
 /*
-Magellan_SIM7020E v1.3.0 NB-IoT Magellan Platform .
+Copyright (c) 2020, Advanced Wireless Network
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Magellan_SIM7020E v1.4.0 NB-IoT Magellan Platform .
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
@@ -14,7 +42,7 @@ and supported only Magellan IoT Platform
  
 Author: Device Innovation team     
 Create Date: 2 January 2020. 
-Modified: 6 February 2020.
+Modified: 1 April 2020.
 
 Released for private usage.
 */
@@ -88,8 +116,8 @@ String Magellan_SIM7020E::thingsRegister()
 
   if(Token.length()==36)
   {
-  	token_error_report=true;
-  	token_error_config=true;
+    token_error_report=true;
+    token_error_config=true;
   }
 
   return Token;
@@ -98,59 +126,62 @@ String Magellan_SIM7020E::thingsRegister()
 String Magellan_SIM7020E::report(String payload,unsigned int qos)
 {
   String Response_Report="";
-  if (Token!="")
-  {
-	  option coapoption[5];
-	  unsigned int totaloption=5;
-
-	  String stropt[5];
-
-	  stropt[0]=F("report");
-	  coapoption[0].stroption=stropt[0];
-	  coapoption[0].optlen=stropt[0].length();
-	  coapoption[0].optionnum=11;
-
-	  stropt[1]=F("sim");
-	  coapoption[1].stroption=stropt[1];
-	  coapoption[1].optlen=stropt[1].length();
-	  coapoption[1].optionnum=11;
-
-	  stropt[2]=F("v1");
-	  coapoption[2].stroption=stropt[2];
-	  coapoption[2].optlen=stropt[2].length();
-	  coapoption[2].optionnum=11;
-
-	  stropt[3]=Token;
-	  coapoption[3].stroption=stropt[3];
-	  coapoption[3].optlen=stropt[3].length();
-	  coapoption[3].optionnum=11;
-
-	  stropt[4]=deviceIP;
-	  coapoption[4].stroption=stropt[4];
-	  coapoption[4].optlen=stropt[4].length();
-	  coapoption[4].optionnum=11;
-
-	  if(qos==0)
-	  {
-	  	Response_Report=postData(payload,coapoption,totaloption);
-	  }
-
-	  if(qos>=1)
-	  {
-	    while(true)
-	    {
-	      Response_Report=postData(payload,coapoption,totaloption);
-		  if(success&&token_error_report)
-		  {
-		   break;
-		  }
-		}
-	  }
-	  
+  if (Token=="" || Token.length()<36){
+    Serial.println(F("Miss Token, Trying register..."));
+    while(true){
+      thingsRegister();
+      if(success&&token_error_report){
+        break;
+      }
+    }
+  }else if(payload.length()>300){
+    Serial.println(F("Warning payload size exceed the limit. [Limit 300 characters]"));
   }
-  else
-  {
-    Serial.println(F("Miss Token"));
+  else{
+    option coapoption[5];
+    unsigned int totaloption=5;
+
+    String stropt[5];
+
+    stropt[0]=F("report");
+    coapoption[0].stroption=stropt[0];
+    coapoption[0].optlen=stropt[0].length();
+    coapoption[0].optionnum=11;
+
+    stropt[1]=F("sim");
+    coapoption[1].stroption=stropt[1];
+    coapoption[1].optlen=stropt[1].length();
+    coapoption[1].optionnum=11;
+
+    stropt[2]=F("v1");
+    coapoption[2].stroption=stropt[2];
+    coapoption[2].optlen=stropt[2].length();
+    coapoption[2].optionnum=11;
+
+    stropt[3]=Token;
+    coapoption[3].stroption=stropt[3];
+    coapoption[3].optlen=stropt[3].length();
+    coapoption[3].optionnum=11;
+
+    stropt[4]=deviceIP;
+    coapoption[4].stroption=stropt[4];
+    coapoption[4].optlen=stropt[4].length();
+    coapoption[4].optionnum=11;
+
+    if(qos==0)
+    {
+      Response_Report=postData(payload,coapoption,totaloption);
+    }
+
+    if(qos>=1){
+      while(true){
+        Response_Report=postData(payload,coapoption,totaloption);
+        if(success&&token_error_report){
+          break;
+        }
+      }
+    }
+    
   }
   return Response_Report; 
 }
@@ -158,50 +189,55 @@ String Magellan_SIM7020E::report(String payload,unsigned int qos)
 String Magellan_SIM7020E::getConfig(String Resource,unsigned int qos)
 {
   String Response_Config="";
-  if (Token!="")
-  {
-	  option coapoption[6];
-	  unsigned int totaloption=6;
-
-	  String stropt[6];
-
-	  stropt[0]=F("config");
-	  coapoption[0].stroption=stropt[0];
-	  coapoption[0].optlen=stropt[0].length();
-	  coapoption[0].optionnum=11;
-
-	  stropt[1]=F("sim");
-	  coapoption[1].stroption=stropt[1];
-	  coapoption[1].optlen=stropt[1].length();
-	  coapoption[1].optionnum=11;
-
-	  stropt[2]=F("v1");
-	  coapoption[2].stroption=stropt[2];
-	  coapoption[2].optlen=stropt[2].length();
-	  coapoption[2].optionnum=11;
-
-	  stropt[3]=Token;
-	  coapoption[3].stroption=stropt[3];
-	  coapoption[3].optlen=stropt[3].length();
-	  coapoption[3].optionnum=11;
-
-	  stropt[4]=deviceIP;
-	  coapoption[4].stroption=stropt[4];
-	  coapoption[4].optlen=stropt[4].length();
-	  coapoption[4].optionnum=11;
-
-	  stropt[5]=Resource;
-	  coapoption[5].stroption=stropt[5];
-	  coapoption[5].optlen=stropt[5].length();
-	  coapoption[5].optionnum=15;
-
-	  Response_Config=getData(coapoption,totaloption,"");
-	  
+  if (Token=="" || Token.length()<36){
+    Serial.println(F("Miss Token, Trying register..."));
+    while(true){
+      thingsRegister();
+      if(success&&token_error_report){
+        break;
+      }
+    }
   }
-  else
-  {
-    Serial.println(F("Miss Token"));
+  else{
+    option coapoption[6];
+    unsigned int totaloption=6;
+
+    String stropt[6];
+
+    stropt[0]=F("config");
+    coapoption[0].stroption=stropt[0];
+    coapoption[0].optlen=stropt[0].length();
+    coapoption[0].optionnum=11;
+
+    stropt[1]=F("sim");
+    coapoption[1].stroption=stropt[1];
+    coapoption[1].optlen=stropt[1].length();
+    coapoption[1].optionnum=11;
+
+    stropt[2]=F("v1");
+    coapoption[2].stroption=stropt[2];
+    coapoption[2].optlen=stropt[2].length();
+    coapoption[2].optionnum=11;
+
+    stropt[3]=Token;
+    coapoption[3].stroption=stropt[3];
+    coapoption[3].optlen=stropt[3].length();
+    coapoption[3].optionnum=11;
+
+    stropt[4]=deviceIP;
+    coapoption[4].stroption=stropt[4];
+    coapoption[4].optlen=stropt[4].length();
+    coapoption[4].optionnum=11;
+
+    stropt[5]=Resource;
+    coapoption[5].stroption=stropt[5];
+    coapoption[5].optlen=stropt[5].length();
+    coapoption[5].optionnum=15;
+
+    Response_Config=getData(coapoption,totaloption,"");
+    
   }
+
   return Response_Config;
 
   }
@@ -209,49 +245,53 @@ String Magellan_SIM7020E::getConfig(String Resource,unsigned int qos)
 String Magellan_SIM7020E::getControl(String Resource,unsigned int qos)
 {
   String Response_Control="";
-  if (Token!="")
-  {
-	  option coapoption[6];
-	  unsigned int totaloption=6;
-
-	  String stropt[6];
-
-	  stropt[0]=F("delta");
-	  coapoption[0].stroption=stropt[0];
-	  coapoption[0].optlen=stropt[0].length();
-	  coapoption[0].optionnum=11;
-
-	  stropt[1]=F("sim");
-	  coapoption[1].stroption=stropt[1];
-	  coapoption[1].optlen=stropt[1].length();
-	  coapoption[1].optionnum=11;
-
-	  stropt[2]=F("v1");
-	  coapoption[2].stroption=stropt[2];
-	  coapoption[2].optlen=stropt[2].length();
-	  coapoption[2].optionnum=11;
-
-	  stropt[3]=Token;
-	  coapoption[3].stroption=stropt[3];
-	  coapoption[3].optlen=stropt[3].length();
-	  coapoption[3].optionnum=11;
-
-	  stropt[4]=deviceIP;
-	  coapoption[4].stroption=stropt[4];
-	  coapoption[4].optlen=stropt[4].length();
-	  coapoption[4].optionnum=11;
-
-	  stropt[5]=Resource;
-	  coapoption[5].stroption=stropt[5];
-	  coapoption[5].optlen=stropt[5].length();
-	  coapoption[5].optionnum=15;
-
-	  Response_Control=getData(coapoption,totaloption,"");
-	  
+  if (Token=="" || Token.length()<36){
+    Serial.println(F("Miss Token, Trying register..."));
+    while(true){
+      thingsRegister();
+      if(success&&token_error_report){
+        break;
+      }
+    }
   }
-  else
-  {
-    Serial.println(F("Miss Token"));
+  else{
+    option coapoption[6];
+    unsigned int totaloption=6;
+
+    String stropt[6];
+
+    stropt[0]=F("delta");
+    coapoption[0].stroption=stropt[0];
+    coapoption[0].optlen=stropt[0].length();
+    coapoption[0].optionnum=11;
+
+    stropt[1]=F("sim");
+    coapoption[1].stroption=stropt[1];
+    coapoption[1].optlen=stropt[1].length();
+    coapoption[1].optionnum=11;
+
+    stropt[2]=F("v1");
+    coapoption[2].stroption=stropt[2];
+    coapoption[2].optlen=stropt[2].length();
+    coapoption[2].optionnum=11;
+
+    stropt[3]=Token;
+    coapoption[3].stroption=stropt[3];
+    coapoption[3].optlen=stropt[3].length();
+    coapoption[3].optionnum=11;
+
+    stropt[4]=deviceIP;
+    coapoption[4].stroption=stropt[4];
+    coapoption[4].optlen=stropt[4].length();
+    coapoption[4].optionnum=11;
+
+    stropt[5]=Resource;
+    coapoption[5].stroption=stropt[5];
+    coapoption[5].optlen=stropt[5].length();
+    coapoption[5].optionnum=15;
+
+    Response_Control=getData(coapoption,totaloption,"");
+    
   }
   return Response_Control;
 }
@@ -268,7 +308,7 @@ bool Magellan_SIM7020E::begin(){
   token_error_report=true;
   token_error_config=true;
   Serial.println();
-  Serial.println(F("               AIS NB-IoT Magellan_SIM7020E V1.3.0"));
+  Serial.println(F("               AIS NB-IoT Magellan_SIM7020E V1.4.0"));
 
   at_udp.setupModule(serverIP,port);
 
@@ -349,7 +389,7 @@ void Magellan_SIM7020E::printMsgID(unsigned int messageID){
 void Magellan_SIM7020E::printPathlen(unsigned int path_len,String init_str)
 {   
     unsigned int extend_len=0;
-    if(path_len>13){
+    if(path_len>=13){
       extend_len=path_len-13;
 
       char extend_L[3];
@@ -686,7 +726,7 @@ String Magellan_SIM7020E::postData(String payload,option *coapOption,unsigned in
 
     if(debug) Serial.println(F("Load new payload"));
     
-    Msg_ID=random(0,65535);                //random message ID
+    Msg_ID=random(0,65535);                  //random message ID
     post_ID=Msg_ID;
     
     for (byte i = 0; i <= maxretrans; ++i)
@@ -694,7 +734,6 @@ String Magellan_SIM7020E::postData(String payload,option *coapOption,unsigned in
       
       post_process=true;
       
-
       msgPost(payload,coapOption,totaloption);  // Construct CoAP message
 
       while(true)
@@ -743,16 +782,17 @@ String Magellan_SIM7020E::postData(String payload,option *coapOption,unsigned in
      }
     }  
 
+  printErrCode(rcvdata);
+
   if(rcvdata.indexOf(F("20000"))!=-1) count_error_token_post=true;
 
-  if(rcvdata.indexOf(F("40300"))!=-1)
+  if(rcvdata.indexOf(F("40300"))!=-1||rcvdata.indexOf(F("50010"))!=-1)
   {
     token_error_report=false;
     count_error_token_post++;
     if(count_error_token_post>=10)
      {
       count_error_token_post = 0;
-      Serial.println(F("Device has not registered to the Magellan Platform or Invalid Token."));
       ESP.restart();
       token_error_report=true;
      }
@@ -771,7 +811,7 @@ String Magellan_SIM7020E::getData(option *coapoption,unsigned int totaloption,St
   String server=serverIP;
   if(!post_process && en_get){
     previous_get =millis();
-    Msg_ID=random(0,65535);
+    Msg_ID=random(0,65535); 
     get_ID=Msg_ID;
     token=random(0,32767);
     get_token=token;
@@ -811,11 +851,13 @@ String Magellan_SIM7020E::getData(option *coapoption,unsigned int totaloption,St
 
       }
   }
-  if(rcvdata.indexOf(F("40300"))!=-1)
+  printErrCode(rcvdata);
+  if(rcvdata.indexOf(F("40300"))!=-1 || rcvdata.indexOf(F("50010"))!=-1)
   {
     token_error_config=false;
-    count_error_token_get++;
+    //count_error_token_get++;
   } 
+
   at_udp._serial_flush();
   return rcvdata;
 }
@@ -1093,11 +1135,50 @@ void Magellan_SIM7020E::rspPrintOut(String rx)
 /*
   - getSignal
         - Get NB-IoT signal
+  - getRadioStat
+        - Get information about radio for troubleshooting
+  - powerSavingMode
+        - Set PSM mode for module
+  - pingIP
+        - ping to check network status      
 */
 String Magellan_SIM7020E::getSignal(){
   return at_udp.getSignal();
 }
 
+radio Magellan_SIM7020E::getRadioStat(){
+  return at_udp.getRadioStat();
+}
+
 void Magellan_SIM7020E::powerSavingMode(unsigned int psm){
   at_udp.powerSavingMode(psm);
+}
+
+pingRESP Magellan_SIM7020E::pingIP(String IP){
+  return at_udp.pingIP(IP);
+}
+
+void Magellan_SIM7020E::printErrCode(String errcode){
+  // switch(errcode.toInt()){
+  //   case 40010:
+  //       Serial.println(F("Invalid payload. The payload must be json.\n"));
+  //       break;
+  //   case 40300:
+  //       Serial.println(F("Device has not registered to the Magellan Platform or Invalid Token."));  //--> chk each 40300   
+  //       break;
+  //   case 40400:
+  //       Serial.println(F("Parameter not found, please check your thing in Magellan."));             // chk control+config --> err code same?
+  //       break;
+  //   case 50010:
+  //       Serial.println(F("Device has not registered to the Magellan Platform."));
+  //       break;
+  //   case 40105:
+  //       Serial.println(F("Account expire."));
+  //       break;
+  //   case 50099:
+  //       Serial.println(F("Unknown error."));
+  //       break;
+  //   default:
+  //       break;
+  // }
 }

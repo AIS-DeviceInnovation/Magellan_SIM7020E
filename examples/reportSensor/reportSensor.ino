@@ -12,6 +12,8 @@
   This is an example for DEVIO NB-DEVKIT I. That has read sensor on board and report data to Magellan IoT Platform.
   
   Please login and enjoy with https://magellan.ais.co.th
+  
+  If you have any questions, please see more details at https://magellan.ais.co.th
 */
 #include "ClosedCube_HDC1080.h"
 #include "Magellan_SIM7020E.h"
@@ -24,7 +26,7 @@ String payload;
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   Serial.println("ClosedCube HDC1080");
 

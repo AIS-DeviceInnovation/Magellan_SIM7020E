@@ -9,6 +9,8 @@
   This is an example for DEVIO NB-DEVKIT I. That has get swich data from Magellan IoT Platform for control LED on board.
   
   Please login and enjoy with https://magellan.ais.co.th
+  
+  If you have any questions, please see more details at https://magellan.ais.co.th
 */
 #include "Magellan_SIM7020E.h"
 Magellan_SIM7020E magel;          
@@ -20,7 +22,7 @@ const int ledPin = 2;      //LED on board Pin 2
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   magel.begin();           //Init Magellan LIB
   payload="{\"sw\":0}";    //Please provide payload with json format
   magel.report(payload);   //Initial switch data to Magellan 
