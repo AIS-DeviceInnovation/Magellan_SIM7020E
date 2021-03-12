@@ -14,6 +14,6 @@
       "type": "git",
       "url": "https://github.com/AIS-DeviceInnovation/Magellan_SIM7020E.git"
   }, 
-  "version": "1.4.0",
+  "version": "1.4.1",
   "platforms": "*"
 }
