@@ -6,6 +6,8 @@
     |      4 EINT       |
     |   26 power key    |
     |     27 reset      |
+
+    If you have any questions, please see more details at https://www.facebook.com/AISDEVIO
 */
 
 #include "AIS_SIM7020E_API.h"
