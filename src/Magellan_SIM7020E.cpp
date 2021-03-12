@@ -27,7 +27,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Magellan_SIM7020E v1.4.0 NB-IoT Magellan Platform .
+Magellan_SIM7020E v1.4.1 NB-IoT Magellan Platform .
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
@@ -42,7 +42,7 @@ and supported only Magellan IoT Platform
  
 Author: Device Innovation team     
 Create Date: 2 January 2020. 
-Modified: 1 April 2020.
+Modified: 17 February 2021.
 
 Released for private usage.
 */
@@ -785,8 +785,7 @@ String Magellan_SIM7020E::postData(String payload,option *coapOption,unsigned in
   printErrCode(rcvdata);
 
   if(rcvdata.indexOf(F("20000"))!=-1) count_error_token_post=true;
-
-  if(rcvdata.indexOf(F("40300"))!=-1||rcvdata.indexOf(F("50010"))!=-1)
+  else
   {
     token_error_report=false;
     count_error_token_post++;
@@ -1164,10 +1163,10 @@ void Magellan_SIM7020E::printErrCode(String errcode){
   //       Serial.println(F("Invalid payload. The payload must be json.\n"));
   //       break;
   //   case 40300:
-  //       Serial.println(F("Device has not registered to the Magellan Platform or Invalid Token."));  //--> chk each 40300   
+  //       Serial.println(F("Device has not registered to the Magellan Platform or Invalid Token."));   
   //       break;
   //   case 40400:
-  //       Serial.println(F("Parameter not found, please check your thing in Magellan."));             // chk control+config --> err code same?
+  //       Serial.println(F("Parameter not found, please check your thing in Magellan."));             
   //       break;
   //   case 50010:
   //       Serial.println(F("Device has not registered to the Magellan Platform."));
@@ -1181,4 +1180,8 @@ void Magellan_SIM7020E::printErrCode(String errcode){
   //   default:
   //       break;
   // }
+}
+
+dateTime Magellan_SIM7020E::getClock(unsigned int timezone){
+  return at_udp.getClock(timezone);
 }

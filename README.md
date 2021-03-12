@@ -1,4 +1,4 @@
-![Library Version](https://img.shields.io/badge/Version-1.4.0-green)
+![Library Version](https://img.shields.io/badge/Version-1.4.1-green)
 
 # AIS Library
 
@@ -67,24 +67,24 @@ magel.report(payload);
 Please the location payload data as below format.\
 **Example**
 ```cpp
-payload={"Location":"Latitude,Longitude"}
+payload="{\"Location\":"Latitude,Longitude"}";
 ```
 Show battery on dashboard\
 Battery is range in 0-100 %.\
 **Example**
 ```cpp
-payload={"Battery":100}   
+payload="{\"Battery\":100}"; 
 ```
 Show Lamp status on dashbord\
 please use 0 or 1 to send status\
 **Example**
 ```cpp
-payload={"Lamp":0} 
-payload={"Lamp":1}
+payload="{\"Lamp\":0}";
+payload="{\"Lamp\":1}";
 ```
 **Note** please see more in the example code 
 ## Quick Started
   1. Connect `DEVIO NB-DEVKIT I` to your computer.
   2. Open the Magellan IoT platform and see the data on your account.
 
-**Note** In this case, the device has already preload code then you just plug and play the development kit. You don't need to upload the example code to the device.
+**Note** In this case, the device has already preload code then you just plug and play the development kit. If you have any questions, please see more details at https://www.facebook.com/AISDEVIO

@@ -27,13 +27,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AT Command Dictionary for SIMCOM SIM7020E version 1.3.1
+AT Command Dictionary for SIMCOM SIM7020E version 1.4.1
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
 Author: Device Innovation team  
 Create Date: 2 January 2020. 
-Modified: 30 April 2020.
+Modified: 17 February 2021.
 */
 
 #include <Arduino.h>
@@ -51,6 +51,11 @@ struct radio{
 	String rsrp="";
 	String rsrq="";
 	String snr="";
+};
+
+struct dateTime{
+	String date="";
+	String time="";
 };
 
 typedef void (*MQTTClientCallback)(String &topic, String &payload, String &QoS, String &retained);
@@ -73,6 +78,7 @@ public:
 	bool NBstatus();
 	bool attachNetwork();
 	void powerSavingMode(unsigned int psm);
+	void syncLocalTime();
 
 	//==========Get Parameter Value=========
 	String getFirmwareVersion();
@@ -86,6 +92,7 @@ public:
 	radio getRadioStat();
 	bool checkPSMmode();
 	bool MQTTstatus();
+	dateTime getClock(unsigned int timezone);
 	//==========Data send/rec.===============
 	void waitResponse(String &retdata,String server);
 	void _Serial_print(String address,String port,unsigned int len);
@@ -131,7 +138,7 @@ private:
 	void manageResponse(String &retdata,String server);
 	bool enterPIN();
 	void printHEX(char *str);
-	
+	void blankChk(String& val);
 
 protected:
 	Stream *_Serial;	
