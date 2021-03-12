@@ -161,6 +161,9 @@ bool AIS_SIM7020E_API::MQTTstatus(){
   return atcmd.MQTTstatus();
 }
 
+dateTime AIS_SIM7020E_API::getClock(unsigned int timezone){
+  return atcmd.getClock(timezone);
+}
 
 /****************************************/
 /**                MQTT                **/
