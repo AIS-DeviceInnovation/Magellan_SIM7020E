@@ -60,6 +60,7 @@ public:
 	String getIMSI();
 	radio getRadioStat();
 	pingRESP pingIP(String IP);
+	dateTime getClock(unsigned int timezone=7);
 	void powerSavingMode(unsigned int psm);
 	bool checkPSMmode();
 	bool NBstatus();
