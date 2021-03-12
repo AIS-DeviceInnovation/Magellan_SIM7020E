@@ -10,7 +10,7 @@
   
   Please login and enjoy with https://magellan.ais.co.th
   
-  If you have any questions, please see more details at https://magellan.ais.co.th
+  If you have any questions, please see more details at https://www.facebook.com/AISDEVIO
 */
 #include "Magellan_SIM7020E.h"
 Magellan_SIM7020E magel;          
