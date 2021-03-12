@@ -27,13 +27,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AT Command Dictionary for SIMCOM SIM7020E version 1.3.1
+AT Command Dictionary for SIMCOM SIM7020E version 1.4.1
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
 Author: Device Innovation team  
 Create Date: 2 January 2020. 
-Modified: 30 April 2020.
+Modified: 17 February 2021.
 */
 
 #include "AT_SIM7020E.h"  
@@ -71,8 +71,8 @@ void AT_SIM7020E::setupModule(String address,String port){
   Serial.print(F(">>Setup "));
 
   _Serial->println("AT+CMEE=1");                    // set report error
+  syncLocalTime();                                  // sync local time
   _serial_flush();
-
   Serial.println(F("...OK"));
 
   Serial.print(F(">>IMSI   : "));
@@ -95,7 +95,6 @@ void AT_SIM7020E::setupModule(String address,String port){
   Serial.print(getSignal()); 
   Serial.println(F(" dBm")); 
 
-  //delay(800);
   _serial_flush();
   Serial.print(F(">>Connecting "));
 
@@ -113,6 +112,12 @@ void AT_SIM7020E::setupModule(String address,String port){
     Serial.println(F("-------- Disconnected ---------"));
     ESP.restart();
   }
+
+  if(debug){
+    Serial.print(F(">>APN   : "));
+    Serial.println(getAPN());
+  }
+
   
 }
 
@@ -346,12 +351,17 @@ pingRESP AT_SIM7020E::pingIP(String IP){
   if(data!=""){
     pingr.ttl = String(ttl/4);
     pingr.rtt = String((replytime/4.0)*100);
-    if(debug) Serial.println(">>Ping IP : "+pingr.addr + ", ttl= " + pingr.ttl + ", replyTime= " + pingr.rtt + "ms");
+    blankChk(pingr.ttl);
+    blankChk(pingr.rtt);
+    Serial.println(">>Ping IP : "+pingr.addr + ", ttl= " + pingr.ttl + ", replyTime= " + pingr.rtt + "ms");
     pingr.status = true;
-  }else { Serial.println(F(">>Ping Failed"));}
+  }else { 
+    Serial.println(F(">>Ping Failed"));
+    pingr.status = false;
+  }
   _serial_flush();
   data_input="";
-
+  
   return pingr;
 }
 
@@ -399,6 +409,8 @@ String AT_SIM7020E::getIMSI(){
   imsi.replace(F("+CPIN: READY"),"");
   imsi.replace(F("OK"),"");  
   imsi.trim();
+
+  blankChk(imsi);
   //Serial.print(F(">>IMSI : "));
   //Serial.println(imsi); 
   return imsi;
@@ -416,6 +428,8 @@ String AT_SIM7020E::getICCID(){
   }
   iccid.replace(F("OK"),"");
   iccid.trim();
+
+  blankChk(iccid);
   //Serial.print(F(">>ICCID : "));
   //Serial.println(iccid); 
   return iccid;
@@ -434,6 +448,8 @@ String AT_SIM7020E::getIMEI(){
       else if(data_input.indexOf(F("OK"))!=-1 && imei!="") break;
     }
   }
+
+  blankChk(imei);
   //Serial.print(F(">>IMEI : "));
   //Serial.println(imei);
   return imei;
@@ -443,19 +459,26 @@ String AT_SIM7020E::getDeviceIP(){
   _serial_flush();
   String deviceIP;
   _Serial->println(F("AT+CGPADDR=1"));
+  bool chk=false;
   while(1){
     if(_Serial->available()){
       data_input=_Serial->readStringUntil('\n');
       if(data_input.indexOf(F("+CGPADDR"))!=-1){
+        chk=true;
         byte index = data_input.indexOf(F(":"));
         byte index2 = data_input.indexOf(F(","));
         deviceIP = data_input.substring(index2+1,data_input.length());
       }
-      else if(data_input.indexOf(F("OK"))!=-1) break;
+      else if(data_input.indexOf(F("OK"))!=-1&&chk){
+        break;
+      } 
     }
   }
   deviceIP.replace(F("\""),"");
   deviceIP.trim();
+
+  blankChk(deviceIP);
+  data_input="";
   // Serial.print(F(">>Device IP : "));
   // Serial.println(deviceIP);
   return deviceIP;
@@ -482,23 +505,19 @@ String AT_SIM7020E::getSignal(){
             byte start_index = data_input.indexOf(F(":"));
             byte stop_index  = data_input.indexOf(F(","));
             data_csq = data_input.substring(start_index+1,stop_index);
-            if (data_csq == "99"){
-              data_csq = "N/A";
-            }
-            else{
-              rssi = data_csq.toInt();
-              rssi = (2*rssi)-113;
-              data_csq = String(rssi);
-            }
+
+            rssi = data_csq.toInt();
+            rssi = (2*rssi)-113;
+            data_csq = String(rssi);
+
           }
         }
       }
     }
   if(rssi==-113)count++;
 
-  }while(rssi==-113&&count<=10);
-  if(rssi==-113)
-  {
+  }while(rssi==-113&&count<=10 || rssi==85&&count<=10);
+  if(rssi==-113 || rssi==85){
     data_csq = "-113";
     count= 0;
   }
@@ -519,6 +538,7 @@ String AT_SIM7020E:: getAPN(){
         index = data_input.indexOf(F(","),index2+1);
         index2 = data_input.indexOf(F(","),index+1);
         out = data_input.substring(index+2,index2-1);
+        if(out==",,") out="";
       }
       if(data_input.indexOf(F("OK"))!=-1){
         break;
@@ -527,6 +547,7 @@ String AT_SIM7020E:: getAPN(){
   }
   _serial_flush();
   data_input="";
+  blankChk(out);
   return out;
 }
 
@@ -542,6 +563,7 @@ String AT_SIM7020E::getFirmwareVersion(){
   }
   fw.replace(F("OK"),"");
   fw.trim();
+  blankChk(fw);
   //Serial.print(F(">>FW Ver: "));
   //Serial.println(fw); 
   return fw;
@@ -581,6 +603,7 @@ String AT_SIM7020E::getNetworkStatus(){
 
     }
   }
+  blankChk(out);
   return(out);
 }
 
@@ -615,7 +638,17 @@ radio AT_SIM7020E::getRadioStat(){
       }
     }
   }
+  blankChk(value.pci);
+  blankChk(value.rsrp);
+  blankChk(value.rsrq);
+  blankChk(value.snr);
   return value;
+}
+
+void AT_SIM7020E::blankChk(String& val){
+  if(val==""){
+    val = "N/A";
+  }
 }
 
 bool AT_SIM7020E::checkPSMmode(){
@@ -757,6 +790,72 @@ void AT_SIM7020E::_serial_flush(){
     }
   }
   _Serial->flush();
+}
+
+dateTime AT_SIM7020E::getClock(unsigned int timezone){
+  dateTime dateTime;
+  _Serial->println(F("AT+CCLK?"));
+  while(1){
+    if(_Serial->available()){
+      data_input=_Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("+CCLK:"))!=-1){
+        byte index = data_input.indexOf(F(":"));
+        byte index2 = data_input.indexOf(F(","),index+1);
+        byte index3 = data_input.indexOf(F("+"),index2+1);
+        dateTime.date = data_input.substring(index+2,index2);         //YY/MM/DD
+        dateTime.time = data_input.substring(index2+1,index3);        //UTC time without adding timezone
+      }
+      if(data_input.indexOf(F("OK"))!=-1){
+        break;
+      }
+    }
+  }
+  if(dateTime.time!="" && dateTime.date!=""){
+    byte index = dateTime.date.indexOf(F("/"));
+    byte index2 = dateTime.date.indexOf(F("/"),index+1);
+    unsigned int yy = ("20"+dateTime.date.substring(0,index)).toInt();
+    unsigned int mm = dateTime.date.substring(index+1,index2).toInt();
+    unsigned int dd = dateTime.date.substring(index2+1,dateTime.date.length()).toInt();
+
+    index = dateTime.time.indexOf(F(":"));
+    unsigned int hr = dateTime.time.substring(0,index).toInt()+timezone;
+
+    if(hr>=24){
+      hr-=24;
+      //date+1
+      dd+=1;
+      if(mm==2){
+        if((yy % 4 == 0 && yy % 100 != 0 || yy % 400 == 0)){
+          if (dd>29) {
+            dd==1;
+            mm+=1;
+          }
+        }
+        else if(dd>28){ 
+          dd==1;
+          mm+=1;
+        }
+      }
+      else if((mm==1||mm==3||mm==5||mm==7||mm==8||mm==10||mm==12)&&dd>31){
+        dd==1;
+        mm+=1;
+      }
+      else if(dd>30){
+        dd==1;
+        mm+=1;
+      }
+    }
+    dateTime.time = String(hr)+dateTime.time.substring(index,dateTime.time.length());
+    dateTime.date = String(dd)+"/"+String(mm)+"/"+String(yy);
+  }
+  blankChk(dateTime.time);
+  blankChk(dateTime.date);
+  return dateTime;
+}
+
+void AT_SIM7020E::syncLocalTime(){
+  _Serial->println(F("AT+CLTS=1"));
+  delay(50);
 }
 
 /****************************************/
@@ -919,7 +1018,6 @@ void AT_SIM7020E::unsubscribe(String topic){
   _Serial->print(F("AT+CMQUNSUB=0,\""));
   _Serial->print(topic);
   _Serial->println(F("\""));
- // delay(600);
   while(1){
     if(_Serial->available()){
       data_input = _Serial->readStringUntil('\n');
@@ -948,7 +1046,6 @@ unsigned int AT_SIM7020E::MQTTresponse(){   //clear buffer before this
       }
   }
   if (end){
-        //Serial.println(data_input);
         if (data_input.indexOf(F("+CMQPUB"))!=-1 || data_input.indexOf(F("+CMQPUBEXT"))!=-1){
         //+CMQPUB: <mqtt_id>,<topic>,<QoS>,<retained>,<dup>,<message_len>,<message>
         byte index = data_input.indexOf(F(","));
