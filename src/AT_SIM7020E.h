@@ -31,115 +31,116 @@ AT Command Dictionary for SIMCOM SIM7020E version 1.4.1
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
-Author: Device Innovation team  
-Create Date: 2 January 2020. 
+Author: Device Innovation team
+Create Date: 2 January 2020.
 Modified: 17 February 2021.
 */
 
 #include <Arduino.h>
 #include <Stream.h>
 
-struct pingRESP{
-	bool status;
-	String addr;
-	String ttl;
-	String rtt;
+struct pingRESP {
+    bool   status;
+    String addr;
+    String ttl;
+    String rtt;
 };
 
-struct radio{
-	String pci="";
-	String rsrp="";
-	String rsrq="";
-	String snr="";
+struct radio {
+    String pci  = "";
+    String rsrp = "";
+    String rsrq = "";
+    String snr  = "";
 };
 
-struct dateTime{
-	String date="";
-	String time="";
+struct dateTime {
+    String date = "";
+    String time = "";
 };
 
-typedef void (*MQTTClientCallback)(String &topic, String &payload, String &QoS, String &retained);
-typedef void (*reponseCallback)(String &datax);
+typedef void (*MQTTClientCallback)(String& topic, String& payload, String& QoS, String& retained);
+typedef void (*reponseCallback)(String& datax);
 
-class AT_SIM7020E{
+class AT_SIM7020E {
 public:
-	AT_SIM7020E();
-	bool debug;	
-	//--------- Parameter config ---------------
-	const unsigned int msgLenMul=2;
-	const unsigned int mqttCmdTimeout=1200;
-	const unsigned int mqttBuffSize=1024;
-	//=========Initialization Module=======
-	void setupModule(String port="",String address="");
-	void check_module_ready();	
-	void reboot_module();
-	pingRESP pingIP(String IP);
-	bool closeUDPSocket();
-	bool NBstatus();
-	bool attachNetwork();
-	void powerSavingMode(unsigned int psm);
-	void syncLocalTime();
+    AT_SIM7020E();
+    bool debug;
+    //--------- Parameter config ---------------
+    const unsigned int msgLenMul      = 2;
+    const unsigned int mqttCmdTimeout = 1200;
+    const unsigned int mqttBuffSize   = 1024;
+    //=========Initialization Module=======
+    void     setupModule(String port = "", String address = "");
+    void     check_module_ready();
+    void     reboot_module();
+    pingRESP pingIP(String IP);
+    bool     closeUDPSocket();
+    bool     NBstatus();
+    bool     attachNetwork();
+    void     powerSavingMode(unsigned int psm);
+    void     syncLocalTime();
 
-	//==========Get Parameter Value=========
-	String getFirmwareVersion();
-	String getIMEI();
-	String getICCID();
-	String getIMSI();
-	String getDeviceIP();
-	String getSignal();    
-	String getAPN();
-	String getNetworkStatus();
-	radio getRadioStat();
-	bool checkPSMmode();
-	bool MQTTstatus();
-	dateTime getClock(unsigned int timezone);
-	//==========Data send/rec.===============
-	void waitResponse(String &retdata,String server);
-	void _Serial_print(String address,String port,unsigned int len);
-	void _Serial_print(String input);
-	void _Serial_print(unsigned int data);
-	void _Serial_print(char*);
-	void _Serial_println();
-	//===============Utility=================
-	void _serial_flush();	
-	//================MQTT===================
-	void disconnectMQTT();
-	bool newMQTT(String server, String port);
-	bool sendMQTTconnectionPacket(String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
-	void publish(String topic, String payload, unsigned int qos, unsigned int retained, unsigned int dup);
-	bool subscribe(String topic, unsigned int qos);
-	void unsubscribe(String topic);
-	unsigned int MQTTresponse();
-	String retTopic;
-  	String retPayload;
-  	String retQoS;
-  	String retRetained;
-  	int setCallback(MQTTClientCallback callbackFunc);
-  	//============ callback ==================
-	reponseCallback callback_p;
-	MQTTClientCallback MQcallback_p;
-    
+    //==========Get Parameter Value=========
+    String   getFirmwareVersion();
+    String   getIMEI();
+    String   getICCID();
+    String   getIMSI();
+    String   getDeviceIP();
+    String   getSignal();
+    String   getAPN();
+    String   getNetworkStatus();
+    radio    getRadioStat();
+    bool     checkPSMmode();
+    bool     MQTTstatus();
+    dateTime getClock(unsigned int timezone);
+    //==========Data send/rec.===============
+    void waitResponse(String& retdata, String server);
+    void _Serial_print(String address, String port, unsigned int len);
+    void _Serial_print(String input);
+    void _Serial_print(unsigned int data);
+    void _Serial_print(char*);
+    void _Serial_println();
+    //===============Utility=================
+    void _serial_flush();
+    //================MQTT===================
+    void         disconnectMQTT();
+    bool         newMQTT(String server, String port);
+    bool         sendMQTTconnectionPacket(String clientID, String username, String password, int keepalive, int version,
+                                          int cleansession, int willflag, String willOption);
+    void         publish(String topic, String payload, unsigned int qos, unsigned int retained, unsigned int dup);
+    bool         subscribe(String topic, unsigned int qos);
+    void         unsubscribe(String topic);
+    unsigned int MQTTresponse();
+    String       retTopic;
+    String       retPayload;
+    String       retQoS;
+    String       retRetained;
+    int          setCallback(MQTTClientCallback callbackFunc);
+    //============ callback ==================
+    reponseCallback    callback_p;
+    MQTTClientCallback MQcallback_p;
+
 private:
-	//==============Buffer====================
-	String data_input;
-	String data_buffer;
-	//==============Flag======================
-	bool hw_connected=false;
-	bool end=false;
-	//==============Parameter=================
-	unsigned int previous_check=0;
-	//============Counter value===============
-	byte k=0;
-	//==============Function==================
-	void echoOff();
-	bool setPhoneFunction();
-	void connectNetwork();
-	bool createUDPSocket(String address,String port);
-	void manageResponse(String &retdata,String server);
-	bool enterPIN();
-	void printHEX(char *str);
-	void blankChk(String& val);
+    //==============Buffer====================
+    String data_input;
+    String data_buffer;
+    //==============Flag======================
+    bool hw_connected = false;
+    bool end          = false;
+    //==============Parameter=================
+    unsigned int previous_check = 0;
+    //============Counter value===============
+    byte k = 0;
+    //==============Function==================
+    void echoOff();
+    bool setPhoneFunction();
+    void connectNetwork();
+    bool createUDPSocket(String address, String port);
+    void manageResponse(String& retdata, String server);
+    bool enterPIN();
+    void printHEX(char* str);
+    void blankChk(String& val);
 
 protected:
-	Stream *_Serial;	
+    Stream* _Serial;
 };

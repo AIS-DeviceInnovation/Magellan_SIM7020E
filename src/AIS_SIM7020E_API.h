@@ -30,9 +30,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 AIS_SIM7020E_API v1.1.0 NB-IoT.
 support SIMCOM SIM7020E
 NB-IoT with AT command
- 
-Author: Device Innovation team     
-Create Date: 2 January 2020. 
+
+Author: Device Innovation team
+Create Date: 2 January 2020.
 Modified: 30 April 2020.
 
 Released for private usage.
@@ -41,60 +41,62 @@ Released for private usage.
 #ifndef AIS_SIM7020E_API_h
 #define AIS_SIM7020E_API_h
 
-
 #include <Arduino.h>
 #include "AT_SIM7020E.h"
 
-
-class AIS_SIM7020E_API{
+class AIS_SIM7020E_API {
 public:
-	AIS_SIM7020E_API();
-	bool debug;
+    AIS_SIM7020E_API();
+    bool debug;
 
-	void (*Event_debug)(char *data);	
+    void (*Event_debug)(char* data);
 
-	void begin(String serverdesport="", String addressI="");
+    void begin(String serverdesport = "", String addressI = "");
 
-	String getDeviceIP();
-	String getSignal();
-	String getIMSI();
-	radio getRadioStat();
-	pingRESP pingIP(String IP);
-	dateTime getClock(unsigned int timezone=7);
-	void powerSavingMode(unsigned int psm);
-	bool checkPSMmode();
-	bool NBstatus();
-	bool MQTTstatus();
+    String   getDeviceIP();
+    String   getSignal();
+    String   getIMSI();
+    radio    getRadioStat();
+    pingRESP pingIP(String IP);
+    dateTime getClock(unsigned int timezone = 7);
+    void     powerSavingMode(unsigned int psm);
+    bool     checkPSMmode();
+    bool     NBstatus();
+    bool     MQTTstatus();
 
-	void sendMsgHEX(String address,String desport,String payload);
-	void sendMsgSTR(String address,String desport,String payload);	
+    void sendMsgHEX(String address, String desport, String payload);
+    void sendMsgSTR(String address, String desport, String payload);
 
-	void waitResponse(String &retdata,String server);
-	
-	bool connectMQTT(String server,String port,String clientID,String username="",String password="");
-	bool connectAdvanceMQTT(String server,String port,String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
-	bool newMQTT(String server, String port);
-	bool sendMQTTconnectionPacket(String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
-	bool publish(String topic, String payload, unsigned int PubQoS=0, unsigned int PubRetained=0, unsigned int PubDup=0);
-	bool subscribe(String topic, unsigned int SubQoS=0);
-	void unsubscribe(String topic);
-	void MQTTresponse();
-	int setCallback(MQTTClientCallback callbackFunc);
-	String willConfig(String will_topic, unsigned int will_qos,unsigned int will_retain,String will_msg);
+    void waitResponse(String& retdata, String server);
 
-	String toString(String dat);
+    bool   connectMQTT(String server, String port, String clientID, String username = "", String password = "");
+    bool   connectAdvanceMQTT(String server, String port, String clientID, String username, String password,
+                              int keepalive, int version, int cleansession, int willflag, String willOption);
+    bool   newMQTT(String server, String port);
+    bool   sendMQTTconnectionPacket(String clientID, String username, String password, int keepalive, int version,
+                                    int cleansession, int willflag, String willOption);
+    bool   publish(String topic, String payload, unsigned int PubQoS = 0, unsigned int PubRetained = 0,
+                   unsigned int PubDup = 0);
+    bool   subscribe(String topic, unsigned int SubQoS = 0);
+    void   unsubscribe(String topic);
+    void   MQTTresponse();
+    int    setCallback(MQTTClientCallback callbackFunc);
+    String willConfig(String will_topic, unsigned int will_qos, unsigned int will_retain, String will_msg);
+
+    String toString(String dat);
 
 private:
-	bool flag_mqtt_connect=false;
-	byte count_post_timeout=0;
-	byte count_pub_timeout=0;
-	byte count_sub_timeout=0;
-	void send_msg(String address,String desport,unsigned int len,String payload);
-	char char_to_byte(char c);	
-	bool setupMQTT(String server,String port,String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
+    bool flag_mqtt_connect  = false;
+    byte count_post_timeout = 0;
+    byte count_pub_timeout  = 0;
+    byte count_sub_timeout  = 0;
+    void send_msg(String address, String desport, unsigned int len, String payload);
+    char char_to_byte(char c);
+    bool setupMQTT(String server, String port, String clientID, String username, String password, int keepalive,
+                   int version, int cleansession, int willflag, String willOption);
 
 protected:
-	 Stream *_Serial;	
+    Stream* _Serial;
 };
 
 #endif
