@@ -76,16 +76,18 @@ void AIS_SIM7020E_API::sendMsgHEX(String address, String desport, String payload
     if (payload.length() > 1024) {
         Serial.println(F("Warning payload size exceed the limit. [Limit of HEX is 1024]"));
     }
-    else
+    else {
         send_msg(address, desport, payload.length(), payload);
+    }
 }
 
 void AIS_SIM7020E_API::sendMsgSTR(String address, String desport, String payload) {
     if (payload.length() > 512) {
         Serial.println(F("Warning payload size exceed the limit. [Limit of String is 512]"));
     }
-    else
+    else {
         send_msg(address, desport, 0, "\"" + payload + "\"");
+    }
 }
 
 void AIS_SIM7020E_API::send_msg(String address, String desport, unsigned int len, String payload) {
@@ -199,22 +201,22 @@ dateTime AIS_SIM7020E_API::getClock(unsigned int timezone) {
 bool AIS_SIM7020E_API::setupMQTT(String server, String port, String clientID, String username, String password,
                                  int keepalive, int version, int cleansession, int willflag, String willOption) {
     bool conStatus = false;
-    if (username.length() > 100 || password.length() > 100) {
+    if ((username.length() > 100) || (password.length() > 100)) {
         Serial.println(F("Username/Password is over 100."));
     }
-    else if (username == "" && password != "") {
+    else if ((username == "") && (password != "")) {
         Serial.println(F("Username is missing."));
     }
-    else if (clientID.length() > 120 || clientID == "" && cleansession != 1) {
+    else if (((clientID.length() > 120) || (clientID == "")) && (cleansession != 1)) {
         Serial.println(F("ClientID is over 120 or ClientID is missing."));
     }
-    else if (server == "" || port == "") {
+    else if ((server == "") || (port == "")) {
         Serial.println(F("Address or port is missing."));
     }
-    else if (version > 4 || version < 3) {
+    else if ((version > 4) || (version < 3)) {
         Serial.println(F("Version must be 3 (MQTT 3.1) or 4 (MQTT 3.1.1)"));
     }
-    else if (willflag == 1 && willOption == "") {
+    else if ((willflag == 1) && (willOption == "")) {
         Serial.println(F("Missing will option."));
     }
     else {
@@ -225,8 +227,9 @@ bool AIS_SIM7020E_API::setupMQTT(String server, String port, String clientID, St
         Serial.print(F("# ClientID : "));
         Serial.println(clientID);
 
-        if (MQTTstatus())
+        if (MQTTstatus()) {
             atcmd.disconnectMQTT();
+        }
 
         if (newMQTT(server, port)) {
             if (atcmd.sendMQTTconnectionPacket(clientID, username, password, keepalive, version, cleansession, willflag,
@@ -242,6 +245,7 @@ bool AIS_SIM7020E_API::setupMQTT(String server, String port, String clientID, St
         }
     }
     atcmd._serial_flush();
+
     return flag_mqtt_connect;
 }
 
@@ -268,22 +272,20 @@ bool AIS_SIM7020E_API::sendMQTTconnectionPacket(String clientID, String username
 
 String AIS_SIM7020E_API::willConfig(String will_topic, unsigned int will_qos, unsigned int will_retain,
                                     String will_msg) {
-    char data[will_msg.length() + 1];
-    memset(data, '\0', will_msg.length());
-    will_msg.toCharArray(data, will_msg.length() + 1);
-    int    len = will_msg.length() * atcmd.msgLenMul;
+    char   data[will_msg.length() + 1];
+    int    len;
     String msg;
+    char*  hstr;
+    char   out[3];
 
-    char* hstr;
+    will_msg.toCharArray(data, will_msg.length() + 1);
+    len  = will_msg.length() * atcmd.msgLenMul;
     hstr = data;
-    char out[3];
-    memset(out, '\0', 2);
-    bool flag = false;
-    while (*hstr) {
-        flag = itoa((int)*hstr, out, 16);
-        if (flag) {
-            msg += out;
-        }
+
+    while (*hstr != '\0') {
+        (void) itoa((int)*hstr, out, 16);
+        msg += out;
+
         hstr++;
     }
     return "\"topic=" + will_topic + ",QoS=" + String(will_qos) + ",retained=" + String(will_retain) +
@@ -296,7 +298,8 @@ bool AIS_SIM7020E_API::publish(String topic, String payload, unsigned int pubQoS
         Serial.println(F("Topic is missing."));
         return false;
     }
-    if (payload.length() * atcmd.msgLenMul > 1000) {
+
+    if ((payload.length() * atcmd.msgLenMul) > 1000) {
         Serial.println(F("Payload hex string is over 1000."));
         return false;
     }
@@ -308,13 +311,15 @@ bool AIS_SIM7020E_API::publish(String topic, String payload, unsigned int pubQoS
     Serial.println(topic);
 
     atcmd.publish(topic, payload, pubQoS, pubRetained, pubDup);
-    while (1) {
+    while (true) {
         unsigned int a = atcmd.MQTTresponse();
-        if (a == 2) {
+        if (a == 2U) {
             return true;
         }
-        else if (a == 3) {
-            return false;
+        else {
+            if (a == 3U) {
+                return false;
+            }
         }
     }
 }
@@ -332,23 +337,28 @@ bool AIS_SIM7020E_API::subscribe(String topic, unsigned int subQoS) {
     Serial.println(topic);
 
     atcmd._serial_flush();
-    atcmd.subscribe(topic, subQoS);
+    (void) atcmd.subscribe(topic, subQoS);
     byte c = 0;
-    while (1) {
+
+    while (true) {
         delay(80);
         unsigned int a = atcmd.MQTTresponse();
-        if (a == 2) {
+        if (a == 2U) {
             return true;
         }
-        else if (a == 3) {
-            if (c > 2)
-                return false;
-            else {
-                atcmd.subscribe(topic, subQoS);
-                c++;
+        else {
+            if (a == 3U) {
+                if (c > 2) {
+                    return false;
+                }
+                else {
+                    (void) atcmd.subscribe(topic, subQoS);
+                    c++;
+                }
             }
         }
     }
+
     atcmd._serial_flush();
 }
 
@@ -362,7 +372,7 @@ void AIS_SIM7020E_API::unsubscribe(String topic) {
 }
 
 void AIS_SIM7020E_API::MQTTresponse() {
-    atcmd.MQTTresponse();
+    (void) atcmd.MQTTresponse();
 }
 
 int AIS_SIM7020E_API::setCallback(MQTTClientCallback callbackFunc) {
@@ -380,10 +390,12 @@ int AIS_SIM7020E_API::setCallback(MQTTClientCallback callbackFunc) {
 */
 String AIS_SIM7020E_API::toString(String dat) {
     String str = "";
+
     for (byte x = 0; x < dat.length(); x += 2) {
-        char c = char_to_byte(dat[x]) << 4 | char_to_byte(dat[x + 1]);
+        char c = char_to_byte((dat[x]) << 4) | char_to_byte(dat[x + 1]);
         str += c;
     }
+
     return (str);
 }
 
@@ -391,6 +403,7 @@ char AIS_SIM7020E_API::char_to_byte(char c) {
     if ((c >= '0') && (c <= '9')) {
         return (c - 0x30);
     }
+
     if ((c >= 'A') && (c <= 'F')) {
         return (c - 55);
     }
