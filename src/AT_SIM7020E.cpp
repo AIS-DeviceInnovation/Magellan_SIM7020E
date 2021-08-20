@@ -332,6 +332,8 @@ bool AT_SIM7020E::closeUDPSocket() {
             }
         }
     }
+
+    return true;
 }
 
 // Set command echo mode off
@@ -929,7 +931,7 @@ dateTime AT_SIM7020E::getClock(unsigned int timezone) {
             // date + 1
             dd += 1U;
             if (mm == 2U) {
-                if ((((yy % 4U) == 0U) && ((yy % 100U) != 0U) || ((yy % 400U) == 0U))) {
+                if ((((yy % 4U) == 0U) && ((yy % 100U) != 0U)) || ((yy % 400U) == 0U)) {
                     if (dd > 29U) {
                         dd = 1U;
                         mm += 1U;
@@ -1098,6 +1100,8 @@ bool AT_SIM7020E::MQTTstatus() {
             }
         }
     }
+
+    return false;
 }
 
 void AT_SIM7020E::publish(String topic, String payload, unsigned int qos, unsigned int retained, unsigned int dup) {
@@ -1131,6 +1135,8 @@ bool AT_SIM7020E::subscribe(String topic, unsigned int qos) {
     _Serial->print(topic); //<topic> String, topic of subscribe message. Max length is 128.
     _Serial->print(F("\","));
     _Serial->println(qos); //<Qos> Integer, message QoS, can be 0, 1 or 2.
+
+    return true;
 }
 
 void AT_SIM7020E::unsubscribe(String topic) {
@@ -1186,9 +1192,9 @@ unsigned int AT_SIM7020E::MQTTresponse() { // clear buffer before this
             char buf[data_input.length() + 1];
             char* p = buf;
             char* str;
-            byte  i = 0;
-            byte  j = 0;
+            byte  i;
 
+            i = 0;
             data_input.toCharArray(buf, sizeof(buf));
             while (true) {
                 str = strtok_r(p, ",", &p);

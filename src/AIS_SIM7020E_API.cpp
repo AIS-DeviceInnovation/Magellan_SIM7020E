@@ -401,10 +401,13 @@ String AIS_SIM7020E_API::toString(String dat) {
 
 char AIS_SIM7020E_API::char_to_byte(char c) {
     if ((c >= '0') && (c <= '9')) {
-        return (c - 0x30);
+        c = (c - 0x30);
+    }
+    else {
+        if ((c >= 'A') && (c <= 'F')) {
+            c = (c - 55);
+        }
     }
 
-    if ((c >= 'A') && (c <= 'F')) {
-        return (c - 55);
-    }
+    return (c);
 }
