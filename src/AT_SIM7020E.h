@@ -27,13 +27,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AT Command Dictionary for SIMCOM SIM7020E version 1.4.1
+AT Command Dictionary for SIMCOM SIM7020E version 1.4.2
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
 Author: Device Innovation team  
 Create Date: 2 January 2020. 
-Modified: 17 February 2021.
+Modified: 19 May 2021.
 */
 
 #include <Arduino.h>
@@ -139,6 +139,7 @@ private:
 	bool enterPIN();
 	void printHEX(char *str);
 	void blankChk(String& val);
+	void setAPN();
 
 protected:
 	Stream *_Serial;	
