@@ -27,7 +27,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Magellan_SIM7020E v1.4.1 NB-IoT Magellan Platform .
+Magellan_SIM7020E v1.4.2 NB-IoT Magellan Platform .
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
@@ -42,7 +42,7 @@ and supported only Magellan IoT Platform
  
 Author: Device Innovation team     
 Create Date: 2 January 2020. 
-Modified: 17 February 2021.
+Modified: 19 May 2021.
 
 Released for private usage.
 */
@@ -308,7 +308,7 @@ bool Magellan_SIM7020E::begin(){
   token_error_report=true;
   token_error_config=true;
   Serial.println();
-  Serial.println(F("               AIS NB-IoT Magellan_SIM7020E V1.4.0"));
+  Serial.println(F("               AIS NB-IoT Magellan_SIM7020E V1.4.2"));
 
   at_udp.setupModule(serverIP,port);
 
