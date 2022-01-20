@@ -1,4 +1,4 @@
-![Library Version](https://img.shields.io/badge/Version-1.4.1-green)
+![Library Version](https://img.shields.io/badge/Version-1.4.2-green)
 
 # AIS Library
 

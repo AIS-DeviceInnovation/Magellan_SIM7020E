@@ -33,7 +33,7 @@ NB-IoT with AT command
  
 Author: Device Innovation team     
 Create Date: 2 January 2020. 
-Modified: 30 April 2020.
+Modified: 19 May 2021.
 
 Released for private usage.
 */

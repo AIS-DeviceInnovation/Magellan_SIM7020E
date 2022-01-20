@@ -27,13 +27,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AT Command Dictionary for SIMCOM SIM7020E version 1.4.1
+AT Command Dictionary for SIMCOM SIM7020E version 1.4.2
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
 Author: Device Innovation team  
 Create Date: 2 January 2020. 
-Modified: 17 February 2021.
+Modified: 6 August 2021.
 */
 
 #include "AT_SIM7020E.h"  
@@ -71,6 +71,7 @@ void AT_SIM7020E::setupModule(String address,String port){
   Serial.print(F(">>Setup "));
 
   _Serial->println("AT+CMEE=1");                    // set report error
+  setAPN();
   syncLocalTime();                                  // sync local time
   _serial_flush();
   Serial.println(F("...OK"));
@@ -84,8 +85,8 @@ void AT_SIM7020E::setupModule(String address,String port){
   Serial.print(F(">>IMEI   : "));
   Serial.println(getIMEI());
 
-  if(debug)Serial.print(F(">>FW ver : "));
-  if(debug)Serial.println(getFirmwareVersion());
+  Serial.print(F(">>FW ver : "));
+  Serial.println(getFirmwareVersion());
 
   if(debug)Serial.print(F(">>PSM mode : "));
   if(debug)Serial.println(checkPSMmode());
@@ -105,6 +106,9 @@ void AT_SIM7020E::setupModule(String address,String port){
       }
     }    
     Serial.println(F("OK"));
+    Serial.print(F(">>APN   : "));
+    Serial.println(getAPN());
+    _serial_flush();
     Serial.println(F("---------- Connected ----------"));
   }
   else {
@@ -112,12 +116,6 @@ void AT_SIM7020E::setupModule(String address,String port){
     Serial.println(F("-------- Disconnected ---------"));
     ESP.restart();
   }
-
-  if(debug){
-    Serial.print(F(">>APN   : "));
-    Serial.println(getAPN());
-  }
-
   
 }
 
@@ -406,13 +404,13 @@ String AT_SIM7020E::getIMSI(){
       else imsi+=data_input;
     }
   }
-  imsi.replace(F("+CPIN: READY"),"");
+
+  byte index = imsi.indexOf(F("52003"));
+  imsi = imsi.substring(index,imsi.length());
   imsi.replace(F("OK"),"");  
   imsi.trim();
 
   blankChk(imsi);
-  //Serial.print(F(">>IMSI : "));
-  //Serial.println(imsi); 
   return imsi;
 }
 
@@ -430,8 +428,6 @@ String AT_SIM7020E::getICCID(){
   iccid.trim();
 
   blankChk(iccid);
-  //Serial.print(F(">>ICCID : "));
-  //Serial.println(iccid); 
   return iccid;
 }
 
@@ -450,8 +446,7 @@ String AT_SIM7020E::getIMEI(){
   }
 
   blankChk(imei);
-  //Serial.print(F(">>IMEI : "));
-  //Serial.println(imei);
+  _serial_flush();
   return imei;
 }
 
@@ -479,8 +474,6 @@ String AT_SIM7020E::getDeviceIP(){
 
   blankChk(deviceIP);
   data_input="";
-  // Serial.print(F(">>Device IP : "));
-  // Serial.println(deviceIP);
   return deviceIP;
 }
 
@@ -539,15 +532,21 @@ String AT_SIM7020E:: getAPN(){
         index2 = data_input.indexOf(F(","),index+1);
         out = data_input.substring(index+2,index2-1);
         if(out==",,") out="";
+        k=1;
       }
       if(data_input.indexOf(F("OK"))!=-1){
-        break;
+        if(k==1) break;
+        else {
+          _Serial->println(F("AT+CGDCONT?"));
+        }
       }
     }
   }
-  _serial_flush();
+  
   data_input="";
   blankChk(out);
+  k=0;
+  _serial_flush();
   return out;
 }
 
@@ -564,8 +563,6 @@ String AT_SIM7020E::getFirmwareVersion(){
   fw.replace(F("OK"),"");
   fw.trim();
   blankChk(fw);
-  //Serial.print(F(">>FW Ver: "));
-  //Serial.println(fw); 
   return fw;
 }
 
@@ -856,6 +853,26 @@ dateTime AT_SIM7020E::getClock(unsigned int timezone){
 void AT_SIM7020E::syncLocalTime(){
   _Serial->println(F("AT+CLTS=1"));
   delay(50);
+}
+
+void AT_SIM7020E::setAPN(){
+  _Serial->println(F("AT*MCGDEFCONT=\"IP\",\"DEVKIT.NB\""));
+  while(1){
+    if(_Serial->available()){
+      data_input=_Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("OK"))!=-1) break;
+    }
+  }
+
+  _Serial->println(F("AT*MCGDEFCONT?"));
+  while(1){
+    if(_Serial->available()){
+      data_input=_Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("*MCGDEFCONT"))!=-1) {
+        break;
+      }
+    }
+  }
 }
 
 /****************************************/
