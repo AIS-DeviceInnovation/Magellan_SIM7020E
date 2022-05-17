@@ -115,6 +115,9 @@ public:
   	String retQoS;
   	String retRetained;
   	int setCallback(MQTTClientCallback callbackFunc);
+	bool newMQTTs(String server, String port);
+  	bool setCertificate(byte cerType,int cerLength,byte isEnd,String CA);
+  	bool checkCertificate(int r_len,int c_len,int p_len);
   	//============ callback ==================
 	reponseCallback callback_p;
 	MQTTClientCallback MQcallback_p;
