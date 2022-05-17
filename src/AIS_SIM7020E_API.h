@@ -50,6 +50,7 @@ class AIS_SIM7020E_API{
 public:
 	AIS_SIM7020E_API();
 	bool debug;
+    bool isMQTTs=false;
 
 	void (*Event_debug)(char *data);	
 
@@ -71,6 +72,10 @@ public:
 
 	void waitResponse(String &retdata,String server);
 	
+	bool newMQTTs(String server, String port);
+	bool manageSSL(String rootCA,String clientCA, String clientPrivateKey);
+	bool setPSK(String PSK);
+	bool setPSKID(String PSKID);
 	bool connectMQTT(String server,String port,String clientID,String username="",String password="");
 	bool connectAdvanceMQTT(String server,String port,String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
 	bool newMQTT(String server, String port);
@@ -83,6 +88,7 @@ public:
 	String willConfig(String will_topic, unsigned int will_qos,unsigned int will_retain,String will_msg);
 
 	String toString(String dat);
+    bool setCertificate(byte type, String CA);
 
 private:
 	bool flag_mqtt_connect=false;
@@ -92,7 +98,8 @@ private:
 	void send_msg(String address,String desport,unsigned int len,String payload);
 	char char_to_byte(char c);	
 	bool setupMQTT(String server,String port,String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
-
+    void addNewline(String &str);
+	
 protected:
 	 Stream *_Serial;	
 };
