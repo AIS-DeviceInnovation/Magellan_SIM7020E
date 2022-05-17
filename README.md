@@ -1,10 +1,10 @@
-![Library Version](https://img.shields.io/badge/Version-1.4.2-green)
+![Library Version](https://img.shields.io/badge/Version-1.5.0-green)
 
 # AIS Library
 
 ## AIS SIM7020E API
 AIS SIM7020E API Library, used on arduino, have been developed for 
-any platform. This library include API such as UDP, MQTT.
+any platform. This library include API such as UDP, MQTT, MQTTs
 ### Example for use the AIS SIM7020E API
 #### Call the AIS SIM7020E API library:
 ```cpp
