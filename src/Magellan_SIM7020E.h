@@ -27,7 +27,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Magellan_SIM7020E v1.4.2 NB-IoT Magellan Platform .
+Magellan_SIM7020E v1.5.0 NB-IoT Magellan Platform .
 support SIMCOM SIM7020E
 NB-IoT with AT command
 
@@ -42,7 +42,7 @@ and supported only Magellan IoT Platform
  
 Author: Device Innovation team     
 Create Date: 2 January 2020. 
-Modified: 19 May 2021.
+Modified: 17 May 2022.
 
 Released for private usage.
 */
