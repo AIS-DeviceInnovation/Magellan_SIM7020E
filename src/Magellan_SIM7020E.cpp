@@ -308,7 +308,7 @@ bool Magellan_SIM7020E::begin(){
   token_error_report=true;
   token_error_config=true;
   Serial.println();
-  Serial.println(F("               AIS NB-IoT Magellan_SIM7020E V1.4.2"));
+  Serial.println(F("               AIS NB-IoT Magellan_SIM7020E V1.5.0"));
 
   at_udp.setupModule(serverIP,port);
 
