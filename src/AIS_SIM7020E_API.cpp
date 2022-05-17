@@ -166,7 +166,7 @@ dateTime AIS_SIM7020E_API::getClock(unsigned int timezone){
 }
 
 /****************************************/
-/**                MQTT                **/
+/**              MQTT(s)               **/
 /****************************************/
 /*
   - setupMQTT
@@ -213,29 +213,58 @@ bool AIS_SIM7020E_API::setupMQTT(String server,String port,String clientID,Strin
     Serial.println(F("Missing will option."));
   }
   else{
-    Serial.print(F("# ServerIP : "));
-    Serial.println(server);
-    Serial.print(F("# Port : "));
-    Serial.println(port);
-    Serial.print(F("# ClientID : "));
-    Serial.println(clientID);
 
     if(MQTTstatus()) atcmd.disconnectMQTT();
 
-    if(newMQTT(server, port)){
-      if(atcmd.sendMQTTconnectionPacket(clientID,username,password,keepalive,version,cleansession,willflag,willOption)){
-        flag_mqtt_connect=true;
+    if(!isMQTTs){
+      if(newMQTT(server, port)){
+        if(atcmd.sendMQTTconnectionPacket(clientID,username,password,keepalive,version,cleansession,willflag,willOption)){
+          flag_mqtt_connect=true;
+          Serial.print(F("# ServerIP : "));
+          Serial.println(server);
+          Serial.print(F("# Port : "));
+          Serial.println(port);
+          Serial.print(F("# ClientID : "));
+          Serial.println(clientID);
+        }
+        else {
+          Serial.println(F("Please check your parameter again."));
+        }
       }
       else {
-        Serial.println(F("Please check your parameter again."));
+        Serial.println(F("Please check your server/port."));
       }
     }
-    else {
-      Serial.println(F("Please check your server/port."));
+    else{
+      if(newMQTTs(server, port)){
+        if(atcmd.sendMQTTconnectionPacket(clientID,username,password,keepalive,version,cleansession,willflag,willOption)){
+          flag_mqtt_connect=true;
+          Serial.print(F("# ServerIP : "));
+          Serial.println(server);
+          Serial.print(F("# Port : "));
+          Serial.println(port);
+          Serial.print(F("# ClientID : "));
+          Serial.println(clientID);
+        }
+        else {
+          Serial.println(F("Please check your parameter  or certificates again."));
+        }
+      }
+      else {
+        Serial.println(F("Please check your server/port/Certificates again."));
+      }
     } 
   }
   atcmd._serial_flush();
   return flag_mqtt_connect;
+}
+
+bool  AIS_SIM7020E_API::newMQTT(String server, String port){
+  return atcmd.newMQTT(server, port);
+}
+
+bool  AIS_SIM7020E_API::newMQTTs(String server, String port){
+  return atcmd.newMQTTs(server, port);
 }
 
 bool AIS_SIM7020E_API::connectMQTT(String server,String port,String clientID,String username,String password){
@@ -244,10 +273,6 @@ bool AIS_SIM7020E_API::connectMQTT(String server,String port,String clientID,Str
 
 bool AIS_SIM7020E_API::connectAdvanceMQTT(String server,String port,String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption){
   return setupMQTT(server,port,clientID,username,password,keepalive,version,cleansession,willflag,willOption);
-}
-
-bool  AIS_SIM7020E_API::newMQTT(String server, String port){
-  return atcmd.newMQTT(server, port);
 }
 
 bool  AIS_SIM7020E_API::sendMQTTconnectionPacket(String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption){
@@ -294,11 +319,11 @@ bool AIS_SIM7020E_API::publish(String topic, String payload, unsigned int pubQoS
 
   atcmd.publish(topic, payload, pubQoS, pubRetained, pubDup);
   while(1){
-  unsigned int a = atcmd.MQTTresponse();
-    if(a==2){
+  unsigned int respCode = atcmd.MQTTresponse();
+    if(respCode==2){
       return true;
     }
-    else if(a==3){
+    else if(respCode==3){
       return false;
     }
   }  
@@ -318,18 +343,18 @@ bool AIS_SIM7020E_API::subscribe(String topic, unsigned int subQoS){
   
   atcmd._serial_flush();
   atcmd.subscribe(topic, subQoS);
-  byte c=0;
+  byte count=0;
   while(1){
     delay(80);
-    unsigned int a = atcmd.MQTTresponse();
-    if(a==2){
+    unsigned int respCode = atcmd.MQTTresponse();
+    if(respCode==2){
       return true;
     }
-    else if(a==3){
-      if(c>2) return false;
+    else if(respCode==3){
+      if(count>2) return false;
       else{ 
         atcmd.subscribe(topic, subQoS);
-        c++;
+        count++;
       }
     }
   }
@@ -353,6 +378,56 @@ int AIS_SIM7020E_API::setCallback(MQTTClientCallback callbackFunc){
   return atcmd.setCallback(callbackFunc);
 }
 
+bool AIS_SIM7020E_API::manageSSL(String rootCA,String clientCA, String clientPrivateKey){ 
+  Serial.println("Certificate Setup. Please wait 1-2 minutes");
+  isMQTTs=true;
+  if(!atcmd.checkCertificate(rootCA.length()+2,clientCA.length()+2,clientPrivateKey.length()+2)){
+    if(setCertificate(0,rootCA)){
+      if(setCertificate(1,clientCA)){
+        if(setCertificate(2,clientPrivateKey)){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  else return true;    
+}
+
+bool AIS_SIM7020E_API::setCertificate(byte type, String CA){ 
+  addNewline(CA);
+  int cerLength = CA.length();
+  if(cerLength>2000){
+    String CA_1 = CA.substring(0,1000);
+    String CA_2 = CA.substring(1000,2000);
+    String CA_3 = CA.substring(2000,cerLength);
+    bool stat1 = atcmd.setCertificate(type,cerLength,0,CA_1);
+    bool stat2 = atcmd.setCertificate(type,cerLength,0,CA_2);
+    bool stat3 = atcmd.setCertificate(type,cerLength,1,CA_3);
+    return stat1&&stat2&&stat3;
+  }
+  else if(cerLength>1000){
+    String CA_1 = CA.substring(0,1000);
+    String CA_2 = CA.substring(1000,cerLength);
+    bool stat1 = atcmd.setCertificate(type,cerLength,0,CA_1);
+    bool stat2 = atcmd.setCertificate(type,cerLength,1,CA_2);
+    return stat1&&stat2;
+  }
+  else{
+    String CA_1 = CA.substring(0,cerLength);
+    bool stat1 = atcmd.setCertificate(type,cerLength,1,CA_1);
+    return stat1;
+  }
+}
+
+bool AIS_SIM7020E_API::setPSK(String PSK){
+  return setCertificate(4, PSK);
+}
+
+bool AIS_SIM7020E_API::setPSKID(String PSKID){
+  return setCertificate(3, PSKID);
+}
+
 /****************************************/
 /**               Utility              **/
 /****************************************/
@@ -361,10 +436,12 @@ int AIS_SIM7020E_API::setCallback(MQTTClientCallback callbackFunc){
       - change hex to string
   - char_to_byte
       - use in function toString
+  - addNewline
+      - add \r\n in certificate, use in MQTTs
 */
 String AIS_SIM7020E_API::toString(String dat){
   String str="";
-  for(byte x=0;x<dat.length();x+=2){
+  for(int x=0;x<dat.length();x+=2){
       char c =  char_to_byte(dat[x])<<4 | char_to_byte(dat[x+1]);
     str += c;
   }
@@ -377,5 +454,13 @@ char AIS_SIM7020E_API:: char_to_byte(char c){
   }
   if((c>='A')&&(c<='F')){
     return(c-55);
+  }
+}
+
+void AIS_SIM7020E_API::addNewline(String &str){
+  if(str.indexOf(F("\r\n"))==-1){
+    byte index = str.indexOf(F("-----"));
+    byte index2 = str.indexOf(F("-----"),index+1);
+    str = str.substring(0,index2+5)+"\\r\\n"+str.substring(index2+5,str.length());
   }
 }
