@@ -1132,3 +1132,90 @@ int AT_SIM7020E::setCallback(MQTTClientCallback callbackFunc){
      return r;
 }
 
+/****************************************/
+/**                MQTTs               **/
+/****************************************/
+
+bool AT_SIM7020E::newMQTTs(String server, String port){
+  _Serial->print(F("AT+CMQTTSNEW="));
+  _Serial->print(F("\""));
+  _Serial->print(server);
+  _Serial->print(F("\""));
+  _Serial->print(F(","));
+  _Serial->print(F("\""));
+  _Serial->print(port);
+  _Serial->print(F("\""));
+  _Serial->print(F(","));
+  _Serial->print(mqttCmdTimeout);           //command_timeout_ms
+  _Serial->print(F(","));
+  _Serial->print(mqttBuffSize);             //buff size
+  _Serial->println();
+
+  while(1){
+    if(_Serial->available()){
+      data_input += _Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("+CMQTTSNEW:"))!=-1 && data_input.indexOf(F("OK"))!=-1){
+        return true;
+      }
+      else if(data_input.indexOf(F("ERROR"))!=-1){
+        return false;
+      }
+    }
+  }
+}
+
+bool AT_SIM7020E::setCertificate(byte cerType,int cerLength,byte isEnd,String CA){
+  _Serial->print(F("AT+CSETCA="));
+  _Serial->print(cerType);
+  _Serial->print(F(","));
+  _Serial->print(cerLength);
+  _Serial->print(F(","));
+  _Serial->print(isEnd);
+  _Serial->print(F(","));
+  _Serial->print(0);          //0 String encoding, 1 HEX Encoding
+  _Serial->print(F(",\""));
+  _Serial->print(CA);
+  _Serial->println(F("\""));
+
+  delay(100);
+
+  while(1){
+    if(_Serial->available()){
+      data_input=_Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("OK"))!=-1){
+        return true;
+      }
+      else if(data_input.indexOf(F("ERROR"))!=-1){
+        return false;
+      }
+    }
+  }
+}
+
+bool AT_SIM7020E::checkCertificate(int r_len,int c_len,int p_len){  //re-check with other server
+  bool r=false;
+  bool c=false;
+  bool p=false;
+
+  _Serial->println(F("AT+CSETCA?"));
+  while(1){
+    if(_Serial->available()){
+      data_input=_Serial->readStringUntil('\n');
+      if(data_input.indexOf(F("Root CA:"))!=-1){
+        if(data_input.indexOf(String(r_len))!=-1) r=true;
+      }
+      if(data_input.indexOf(F("Client CA:"))!=-1){
+        if(data_input.indexOf(String(c_len))!=-1) c=true;
+      }
+      if(data_input.indexOf(F("Client Private Key:"))!=-1){
+        if(data_input.indexOf(String(p_len))!=-1) p=true;
+      }
+      if(data_input.indexOf(F("OK"))!=-1){
+        break;
+      }
+    }
+  }
+  return r&&c&&p;
+}
+
+
