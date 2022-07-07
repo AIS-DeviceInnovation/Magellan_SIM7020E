@@ -35,7 +35,7 @@ Author: Device Innovation team
 Create Date: 2 January 2020. 
 Modified: 19 May 2021.
 */
-
+#pragma once
 #include <Arduino.h>
 #include <Stream.h>
 
