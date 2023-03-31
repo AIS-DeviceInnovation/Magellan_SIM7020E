@@ -27,13 +27,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AIS_SIM7020E_API v1.1.0 NB-IoT.
+AIS_SIM7020E_API v1.5.1 NB-IoT.
 support SIMCOM SIM7020E
 NB-IoT with AT command
- 
-Author: Device Innovation team     
-Create Date: 2 January 2020. 
-Modified: 30 April 2020.
+
+Author: Device Innovation team
+Create Date: 2 January 2020.
+Modified: 30 March 2023.
 
 Released for private usage.
 */
@@ -41,67 +41,79 @@ Released for private usage.
 #ifndef AIS_SIM7020E_API_h
 #define AIS_SIM7020E_API_h
 
-
-#include <Arduino.h>
 #include "AT_SIM7020E.h"
+#include <Arduino.h>
 
+#define LIBRARY_VERSION "AIS_SIM7020E_API v1.5.1"
+#define DEFAULT_QOS 0
+#define KEEPALIVE 900
+#define DEFAULT_TIMEZONE 7
 
-class AIS_SIM7020E_API{
+enum certificateType { ROOT_CERTIFICATE, CLIENT_CERTIFICATE, CLIENT_PRIVATEKEY, PSKID, PSK };
+
+class AIS_SIM7020E_API {
 public:
-	AIS_SIM7020E_API();
-	bool debug;
-    bool isMQTTs=false;
+  AIS_SIM7020E_API();
+  bool debug;
 
-	void (*Event_debug)(char *data);	
+  void (*Event_debug)(char *data);
 
-	void begin(String serverdesport="", String addressI="");
+  void     begin(String serverdesport = "", String addressI = "", String apn = "");
+  String   getDeviceIP();
+  String   getSignal();
+  String   getIMSI();
+  radio    getRadioStat();
+  pingRESP pingIP(String IP);
+  dateTime getClock(unsigned int timezone = DEFAULT_TIMEZONE);
+  void     powerSavingMode(unsigned int psm, String Requested_PeriodicTAU = "",
+                           String Requested_Active_Time = "");
+  bool     checkNetworkConnection();
+  bool     checkPSMmode();
+  bool     MQTTstatus();
 
-	String getDeviceIP();
-	String getSignal();
-	String getIMSI();
-	radio getRadioStat();
-	pingRESP pingIP(String IP);
-	dateTime getClock(unsigned int timezone=7);
-	void powerSavingMode(unsigned int psm);
-	bool checkPSMmode();
-	bool NBstatus();
-	bool MQTTstatus();
+  void sendMsgHEX(String address, String desport, String payload);
+  void sendMsgSTR(String address, String desport, String payload);
 
-	void sendMsgHEX(String address,String desport,String payload);
-	void sendMsgSTR(String address,String desport,String payload);	
+  void waitResponse(String &retdata, String server);
 
-	void waitResponse(String &retdata,String server);
-	
-	bool newMQTTs(String server, String port);
-	bool manageSSL(String rootCA,String clientCA, String clientPrivateKey);
-	bool setPSK(String PSK);
-	bool setPSKID(String PSKID);
-	bool connectMQTT(String server,String port,String clientID,String username="",String password="");
-	bool connectAdvanceMQTT(String server,String port,String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
-	bool newMQTT(String server, String port);
-	bool sendMQTTconnectionPacket(String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
-	bool publish(String topic, String payload, unsigned int PubQoS=0, unsigned int PubRetained=0, unsigned int PubDup=0);
-	bool subscribe(String topic, unsigned int SubQoS=0);
-	void unsubscribe(String topic);
-	void MQTTresponse();
-	int setCallback(MQTTClientCallback callbackFunc);
-	String willConfig(String will_topic, unsigned int will_qos,unsigned int will_retain,String will_msg);
-
-	String toString(String dat);
-    bool setCertificate(byte type, String CA);
+  bool   connectMQTT(String server, String port, String clientID, String username = "",
+                     String password = "");
+  bool   connectMQTT(String server, String port, String clientID, String username, String password,
+                     int keepalive, int version, int cleansession, int willflag, String willOption);
+  bool   newMQTT(String server, String port);
+  bool   newMQTTs(String server, String port);
+  bool   sendMQTTconnectionPacket(String clientID, String username, String password, int keepalive,
+                                  int version, int cleansession, int willflag, String willOption);
+  bool   publish(String topic, String payload, unsigned int PubQoS = DEFAULT_QOS,
+                 unsigned int PubRetained = DEFAULT_QOS, unsigned int PubDup = DEFAULT_QOS);
+  bool   subscribe(String topic, unsigned int SubQoS = DEFAULT_QOS);
+  void   unsubscribe(String topic);
+  void   MQTTresponse();
+  bool   setCallback(MQTTClientCallback callbackFunc);
+  bool   manageSSL(String rootCertificate, String clientCertificate, String clientPrivateKey);
+  bool   setPSK(String PSK);
+  bool   setPSKID(String PSKID);
+  String willConfig(String will_topic, unsigned int will_qos, unsigned int will_retain,
+                    String will_msg);
+  String toString(String dat);
 
 private:
-	bool flag_mqtt_connect=false;
-	byte count_post_timeout=0;
-	byte count_pub_timeout=0;
-	byte count_sub_timeout=0;
-	void send_msg(String address,String desport,unsigned int len,String payload);
-	char char_to_byte(char c);	
-	bool setupMQTT(String server,String port,String clientID,String username,String password,int keepalive, int version,int cleansession, int willflag, String willOption);
-    void addNewline(String &str);
-	
+  unsigned long       startTime         = 0;
+  unsigned long       timePassed        = 0;
+  const unsigned long timeout_ms        = 5000;
+  int                 attemptCount      = 0;
+  bool                flag_mqtt_connect = false;
+  bool                isMQTTs           = false;
+
+  void send_msg(String address, String desport, unsigned int len, String payload);
+  char char_to_byte(char c);
+  bool setupMQTT(String server, String port, String clientID, String username, String password,
+                 int keepalive, int version, int cleansession, int willflag, String willOption);
+  void addNewline(String &str);
+  bool setCertificate(certificateType type, String CA);
+
 protected:
-	 Stream *_Serial;	
+  Stream *_Serial;
 };
 
 #endif

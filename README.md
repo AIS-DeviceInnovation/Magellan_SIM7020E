@@ -1,90 +1,89 @@
-![Library Version](https://img.shields.io/badge/Version-1.5.0-green)
+![Library Version](https://img.shields.io/badge/Version-1.5.1-green)
 
-# AIS Library
+# AIS DEVIO NB-DEVKIT I Library
+
+This library only supports the [DEVIO NB-DEVKIT I](https://aisplayground.ais.co.th/marketplace/products/WqTKYdlwnhl). If you have any questions or concerns, please reach out to us on [DEVIO FB Fanpage](https://www.facebook.com/AISDEVIO).
 
 ## AIS SIM7020E API
-AIS SIM7020E API Library, used on arduino, have been developed for 
-any platform. This library include API such as UDP, MQTT, MQTTs
-### Example for use the AIS SIM7020E API
-#### Call the AIS SIM7020E API library:
+
+The AIS SIM7020E API Library is an Arduino IDE library that has been developed to support platforms that use UDP, MQTT, and MQTTs.
+
+### AIS SIM7020E API Example Code
+
+#### Calling the AIS SIM7020E API Library:
 ```cpp
 #include "AIS_SIM7020E_API.h"
 AIS_SIM7020E_API nb;
 ```
-#### Initial AIS SIM7020E API Library:
-**for UDP**
+
+### Initializing the AIS SIM7020E API Library:
+
+**UDP**
 ```cpp
-nb.begin(serverIP,serverPort);    
+nb.begin(serverIP,serverPort);
 ```
-**for MQTT**
+
+**MQTT**
 ```cpp
-nb.begin();    
-nb.connectMQTT(serverIP,serverPort,clientID)
-nb.RegisMQCallback(callback);     
+nb.begin();
+setupMQTT();
+//nb.connectMQTT(serverIP,serverPort,clientID);
+nb.setCallback(callback);
 ```
-#### Send Data:
-**for UDP**
+#### Sending Data:
+
+**UDP**
 ```cpp
 nb.sendMsgSTR(serverIP,serverPort,payload);  // Send data in String 
 // or
 nb.sendMsgHEX(serverIP,serverPort,payload);  // Send data in HexString   
 ```
-**for MQTT**
-```cpp
-nb.publish(topic,payload)  
-``` 
- **Note** please see more in the example code  
- 
-## AIS Magellan Library
-AIS Magellan Library, a software development kit used on arduino platform, have been developed for 
-Magellan IoT Platform.  
 
-### Example for use the Magellan SDK
-#### Call the Magellan library:
+**MQTT**
+```cpp
+nb.publish(topic,payload);  
+```
+## AIS Magellan Library
+
+The AIS Magellan Library is an SDK for use with the Magellan IoT Platform and the Arduino IDE.
+
+### Magellan SDK Example Code
+#### Calling the Magellan Library:
 ```cpp
 #include "Magellan_SIM7020E.h"
 Magellan_SIM7020E magel;
 ```
-#### Initial Magellan Library:
+#### Initializing the Magellan Library:
 ```cpp
 magel.begin();           //init Magellan LIB
 ```
-#### Payload Data: 
-Please use the payload in JSON format 
-
-**Example**\
-{"Temperature":25,"Humidity":90}
-
+#### Payload Data:
+Please ensure that the payload is in JSON format, for example:
 ```cpp
 payload="{\"Temperature\":"+Temperature+",\"Humidity\":"+Humidity+"}";
 ```
-#### Report Data:
-The example code report payload data to Magellan IoT Platform.
+
+#### Reporting Data:
+
+Please ensure that the payload is in JSON format, for example:
 ```cpp
 magel.report(payload);
 ```
-#### Example Magellan payload format
-Please the location payload data as below format.\
-**Example**
+#### Magellan Payload Format Examples
+
+**Location**
 ```cpp
 payload="{\"Location\":"Latitude,Longitude"}";
 ```
-Show battery on dashboard\
-Battery is range in 0-100 %.\
-**Example**
+**Battery Status on Dashboard**\
+Battery must be in the range of 0-100 %
 ```cpp
 payload="{\"Battery\":100}"; 
 ```
-Show Lamp status on dashbord\
-please use 0 or 1 to send status\
-**Example**
+**Lamp Status**\
+Send status using 0 or 1.
 ```cpp
 payload="{\"Lamp\":0}";
 payload="{\"Lamp\":1}";
 ```
-**Note** please see more in the example code 
-## Quick Started
-  1. Connect `DEVIO NB-DEVKIT I` to your computer.
-  2. Open the Magellan IoT platform and see the data on your account.
-
-**Note** In this case, the device has already preload code then you just plug and play the development kit. If you have any questions, please see more details at https://www.facebook.com/AISDEVIO
+**Note** For more examples, please refer to the example code included in the Arduino IDE.
