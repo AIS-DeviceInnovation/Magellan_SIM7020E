@@ -29,8 +29,8 @@ unsigned int pubDuplicate = 0;     // duplicate = 0 or 1
 
 // parameter for will option (Last will and Testament)
 int          willflag    = 1;               // willflag : 0, 1
-unsigned int will_qos    = 0;               // will_qos   : unsinged int : 0, 1, 2
-unsigned int will_retain = 0;               // will_retain: unsinged int : 0, 1
+unsigned int will_qos    = 0;               // will_qos   : unsigned int : 0, 1, 2
+unsigned int will_retain = 0;               // will_retain: unsigned int : 0, 1
 String       will_topic  = "will_topic";    // will_topic : String
 String       will_msg    = "will_msg";      // will_msg   : String
 String       willOption  = nb.willConfig(will_topic, will_qos, will_retain, will_msg);

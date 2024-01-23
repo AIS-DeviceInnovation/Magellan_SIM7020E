@@ -67,11 +67,11 @@ pingRESP AIS_SIM7020E_API::pingIP(String IP) {
 /****************************************/
 /*
   - sendMsgHEX
-      - Send messege in HEX string. Limit of is 1024.
+      - Send message in HEX string. Limit of is 1024.
   - sendMsgSTR
-      - Send messege in ASCII string. Limit of is 512.
+      - Send message in ASCII string. Limit of is 512.
   - send_msg
-      - Send messege to the server.
+      - Send message to the server.
 */
 void AIS_SIM7020E_API::sendMsgHEX(String address, String desport, String payload) {
   if (payload.length() > 1024) {
@@ -173,18 +173,18 @@ dateTime AIS_SIM7020E_API::getClock(unsigned int timezone) {
 /*
   - setupMQTT
       - setup module to use MQTT include serverIP, port, clientID, username,
-  password, keep alive interval, will messege.
+  password, keep alive interval, will message.
   - connectMQTT
       - setup module to use MQTT include serverIP, port, clientID, username,
   password
   - connectMQTT
       - setup module to use MQTT include serverIP, port, clientID, username,
-  password, keep alive interval, will messege.
+  password, keep alive interval, will message.
       - connect device to MQTT server and port
   - sendMQTTconnectionPacket
       - connect device to MQTT with configuration value
   - willConfig
-      - create payload for will messege
+      - create payload for will message
   - publish
       - publish payload within  1000 characters.
   - subscribe
