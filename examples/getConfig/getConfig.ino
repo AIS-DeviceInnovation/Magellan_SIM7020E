@@ -33,7 +33,7 @@ void loop()
   
   if(threshold.indexOf("40300")!=-1)        //Response data is 40300
   {
-    Serial.println("Device has not registered or it has not configuraton profile in Magellan Platform");
+    Serial.println("Device has not registered or it has not configuration profile in Magellan Platform");
   }
   else
   {

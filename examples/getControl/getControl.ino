@@ -6,7 +6,7 @@
     |      4 EINT       |
     |   26 power key    |
     |     27 reset      |
-  Example for get swich data from Magellan IoT Platform
+  Example for get switch data from Magellan IoT Platform
   please use payload with json format e.g. {"Temperature":25.5,"Humidity":90.4,"Light":45}
   and {"Location":"13.001,100.44"} for plot the location on MAP
                     |        |
@@ -36,7 +36,7 @@ void setup()
 void loop() 
 {
   /*
-    Example get swich data from Magellan IoT platform
+    Example get switch data from Magellan IoT platform
   */
   sw_state=magel.getControl("sw"); //Get switch data from Magellan IoT platform
   

@@ -6,7 +6,7 @@
     |      4 EINT       |
     |   26 power key    |
     |     27 reset      |
-  This is an example for DEVIO NB-DEVKIT I. That has get swich data from Magellan IoT Platform for control LED on board.
+  This is an example for DEVIO NB-DEVKIT I. That has get switch data from Magellan IoT Platform for control LED on board.
   
   Please login and enjoy with https://magellan.ais.co.th
   
@@ -32,7 +32,7 @@ void setup()
 void loop() 
 {
   /*
-    Example get swich data from Magellan IoT platform for control LED on board
+    Example get switch data from Magellan IoT platform for control LED on board
   */
   sw_state=magel.getControl("sw");  //Get switch data from Magellan IoT platform
 
